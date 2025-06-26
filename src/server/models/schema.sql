@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS members (
     phone VARCHAR(20) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
     address TEXT NOT NULL,
+    postcode VARCHAR(20),
     birth_month INTEGER CHECK (birth_month >= 1 AND birth_month <= 12),
     birth_year INTEGER CHECK (birth_year >= 1900 AND birth_year <= EXTRACT(YEAR FROM CURRENT_DATE)),
     employment_status VARCHAR(100) NOT NULL,

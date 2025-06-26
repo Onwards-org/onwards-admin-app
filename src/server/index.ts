@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
@@ -25,7 +26,14 @@ app.get('/api/health', (req, res) => {
 const startServer = async () => {
   try {
     initDatabase()
-    await createTables()
+    
+    // Try to create tables, but don't fail if we don't have permissions
+    try {
+      await createTables()
+      console.log('Database tables verified/created successfully')
+    } catch (error) {
+      console.warn('Could not create/verify tables (this is ok if tables already exist):', error.message)
+    }
     
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)

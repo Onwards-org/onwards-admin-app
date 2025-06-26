@@ -38,10 +38,11 @@ A comprehensive web application for managing community members, attendance track
 
 - **Frontend**: Vue.js 3, TypeScript, Tailwind CSS, Pinia, Vue Router
 - **Backend**: Node.js, Express.js, TypeScript
-- **Database**: PostgreSQL
+- **Database**: PostgreSQL with SSL support
 - **Authentication**: JWT tokens with bcrypt hashing
 - **Validation**: Valibot for robust form validation
 - **PDF Generation**: PDFKit for report generation
+- **Address Validation**: Google Places API autocomplete
 - **Development**: Vite, hot reload, TypeScript strict mode
 
 ## 🚀 Quick Start
@@ -65,25 +66,39 @@ A comprehensive web application for managing community members, attendance track
    ```
 
 3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edit `.env` with your configuration:
+   Create `.env` file in the project root:
    ```env
+   # Database configuration (use your actual database credentials)
    DATABASE_URL=postgresql://username:password@localhost:5432/onwards_db
+   
+   # JWT Secret for authentication (generate a secure random string)
    JWT_SECRET=your-super-secret-jwt-key-here
-   PORT=3000
+   
+   # Server configuration
+   PORT=3001
    NODE_ENV=development
    ```
+
+   **Optional: Google Maps API** (for address autocomplete)
+   ```env
+   # Add to src/client/.env.local for client-side access
+   VITE_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
+   ```
+   See `GOOGLE_MAPS_SETUP.md` for detailed setup instructions.
 
 4. **Start the development server**
    ```bash
    npm run dev
    ```
+   
+   **Important**: The server runs in the background. You should see:
+   - Backend: `Server running on port 3001`
+   - Frontend: `Local: http://localhost:8080/`
+   
+   If you get port conflicts, see "Development Server Management" in `CLAUDE.md`
 
 5. **Set up first admin**
-   - Visit `http://localhost:5173/setup`
+   - Visit `http://localhost:8080/setup`
    - Create your first administrator account
    - Login and start using the platform
 
@@ -192,11 +207,12 @@ src/
 
 ### Registration Form Fields
 - **Privacy**: Mandatory privacy statement acceptance
-- **Personal**: Name, phone, email, address, birth month/year
+- **Personal**: Name, phone, email, address (with Google Places autocomplete), birth month/year
 - **Demographics**: Employment, ethnicity, religion, gender, sexual orientation
-- **Health**: Medical conditions, challenging behaviors, additional information
-- **Emergency**: Multiple emergency contacts with validation
+- **Emergency Contacts**: Multiple emergency contacts with validation
+- **Health Information**: Medical conditions, challenging behaviors, pregnancy status, additional information
 - **Interests**: Hobbies and interests text field
+- **Review**: Complete summary before submission
 
 ### Validation Rules
 - UK phone number format validation

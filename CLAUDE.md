@@ -4,11 +4,12 @@
 This is a comprehensive admin platform for Onwards, a volunteer-led organization supporting individuals with autism, ADHD, and anxiety. The platform handles member registration, attendance tracking, and reporting for funding purposes.
 
 ## Technology Stack
-- **Frontend**: Vue.js 3, TypeScript, Tailwind CSS 4, Pinia (state management), Vue Router
+- **Frontend**: Vue.js 3, TypeScript, Tailwind CSS v3 (stable), Pinia (state management), Vue Router
 - **Backend**: Node.js, Express.js, TypeScript
-- **Database**: PostgreSQL with pg driver
-- **Authentication**: JWT with bcrypt password hashing
+- **Database**: PostgreSQL with pg driver, SSL support
+- **Authentication**: JWT with bcrypt password hashing (12 salt rounds)
 - **Validation**: Valibot for form validation
+- **Address Autocomplete**: Google Places API with @googlemaps/js-api-loader
 - **PDF Generation**: PDFKit
 - **Charts**: Chart.js
 - **Development**: Vite, tsx for development server, concurrently for parallel processes
@@ -37,6 +38,119 @@ src/
 - `npm run build` - Build both client and server for production
 - `npm run typecheck` - Run TypeScript type checking
 - `npm run lint` - Run ESLint code linting
+
+## Development Server Management (CRITICAL)
+
+### Starting the Development Server
+**ALWAYS use this command when starting the dev server through Claude:**
+
+```bash
+nohup npm run dev > dev.log 2>&1 &
+```
+
+**Why this is essential:**
+- Regular `npm run dev` will block the terminal and timeout after 2 minutes when run through Claude
+- The `nohup` command detaches the process from the terminal session
+- Output is redirected to `dev.log` file for monitoring
+- The `&` runs the process in the background
+- This starts BOTH frontend (port 8080) and backend (port 3001) servers
+
+### Checking Server Status
+```bash
+# Check if servers are running
+tail -20 dev.log
+
+# Check for both services
+tail -50 dev.log | grep -E "(vite|8080|\[1\])" # Frontend
+tail -50 dev.log | grep -E "(Server running|3001|\[0\])" # Backend
+
+# Check processes
+ps aux | grep -E "(npm|tsx|vite)" | grep -v grep
+```
+
+### Stopping the Development Server
+```bash
+# Method 1: Kill all npm processes (recommended)
+pkill -f npm && sleep 2
+
+# Method 2: Kill by specific process types
+pkill -f "npm run dev" && pkill -f tsx && pkill -f vite
+
+# Method 3: Force kill by port if needed
+lsof -ti:3001 | xargs kill -9  # Backend
+lsof -ti:8080 | xargs kill -9  # Frontend
+```
+
+### Restarting After Changes
+```bash
+# Full restart (when environment variables or configs change)
+pkill -f npm && sleep 3 && nohup npm run dev > dev.log 2>&1 &
+
+# Quick restart for most changes (Vite has HMR)
+# Usually not needed - Vite auto-reloads on file changes
+```
+
+### Expected Output
+When successful, you should see in `dev.log`:
+```
+[0] Server running on port 3001
+[0] Health check: http://localhost:3001/api/health
+[1] VITE v5.4.19  ready in 134 ms
+[1] ➜  Local:   http://localhost:8080/
+[1] ➜  Network: http://192.168.1.221:8080/
+```
+
+### Common Issues and Solutions
+1. **Port Already in Use (EADDRINUSE)**
+   ```bash
+   lsof -ti:3001 | xargs kill -9
+   lsof -ti:8080 | xargs kill -9
+   ```
+
+2. **Frontend Not Starting** 
+   - Check if PostCSS config exists and is named correctly
+   - Ensure `postcss.config.cjs` (not .js) for ES modules
+
+3. **Backend Database Connection Issues**
+   - Check DATABASE_URL in .env
+   - Verify database is accessible with SSL if needed
+
+4. **Frontend Shows "Can't Reach Site"**
+   - Frontend likely not running - check dev.log for Vite errors
+   - Ensure both [0] (backend) and [1] (frontend) processes are running
+
+**Common Issues:**
+1. **Tailwind CSS version issue**: Use stable Tailwind v3, not v4 alpha:
+   ```bash
+   npm uninstall tailwindcss @tailwindcss/postcss
+   npm install -D tailwindcss@^3.4.0
+   ```
+   postcss.config.js should be:
+   ```js
+   export default {
+     plugins: {
+       tailwindcss: {},
+       autoprefixer: {}
+     }
+   }
+   ```
+   tailwind.config.js should use module.exports for v3 and correct paths for Vite root:
+   ```js
+   module.exports = {
+     content: [
+       './**/*.{vue,js,ts,jsx,tsx}',  // Relative to Vite root (src/client)
+       './index.html'
+     ],
+     theme: { extend: {} },
+     plugins: []
+   }
+   ```
+2. **Tailwind CSS import error**: Use `@tailwind base;` instead of `@import 'tailwindcss/base';` in CSS files
+3. **Port conflicts**: Check .env PORT setting and vite.config.ts port configuration
+4. **Database permissions**: Ensure user has CREATE permissions or tables already exist
+5. **Environment variables**: Make sure .env file is loaded with `import 'dotenv/config'` in server index
+6. **Vite path aliases**: When using `root: 'src/client'`, ensure aliases resolve correctly with proper `__dirname` setup
+7. **Database SSL**: For remote databases, set `ssl: { rejectUnauthorized: false }` in database config
 
 ## Database Schema
 
@@ -67,12 +181,16 @@ src/
 - Cannot delete last admin or own account
 
 ### 2. Member Registration (`/src/client/pages/Register.vue`)
-- Multi-step wizard interface (6 steps)
+- Multi-step wizard interface (6 steps: Privacy, Personal, Demographics, Emergency Contacts, Health, Review)
 - Privacy statement with mandatory acceptance
 - All required demographics matching Jotform
-- UK phone number validation
-- Form validation with error display
+- UK phone number validation with regex
+- Google Places API address autocomplete with postcode extraction
+- Age calculation that accounts for birth month (not just year)
+- Form validation with error display and boolean prop validation
 - Accessible design for users with autism/ADHD
+- Complete registration summary before submission
+- Success page with next steps information
 
 ### 3. Member Management (`/src/server/routes/members.ts`)
 - Complete CRUD operations
@@ -95,19 +213,54 @@ src/
 - Navigation to all system areas
 
 ## Environment Variables Required
+
+### Root .env file:
 ```
 DATABASE_URL=postgresql://username:password@localhost:5432/onwards_db
 JWT_SECRET=your-super-secret-jwt-key-here
-PORT=3000
+PORT=3001
 NODE_ENV=development
-GOOGLE_PLACES_API_KEY=your-google-places-api-key (optional)
 ```
 
+### Client environment (src/client/.env.local):
+```
+VITE_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
+```
+
+**Important Notes:**
+- Vite runs with `root: 'src/client'`, so client environment files must be in `src/client/`
+- Client environment variables must be prefixed with `VITE_` to be accessible
+- Server restarts are required for .env changes
+- See `GOOGLE_MAPS_SETUP.md` for Google Maps API setup instructions
+
 ## Database Setup
-1. Create PostgreSQL database
-2. Set DATABASE_URL in .env file
+1. Create PostgreSQL database (or use cloud service like Neon/Supabase)
+2. Set DATABASE_URL in .env file with SSL if needed:
+   ```
+   DATABASE_URL=postgresql://user:pass@host:5432/db?sslmode=require
+   ```
 3. Run the application - schema will be created automatically
 4. Access /setup to create first admin user
+
+## Application URLs (Development)
+- **Frontend**: http://localhost:8080/ (Vue.js with Vite)
+- **Backend Health**: http://localhost:3001/api/health (Express.js server)
+- **Admin Setup**: http://localhost:8080/setup (first time only)
+- **Admin Login**: http://localhost:8080/login (after setup)
+- **Admin Dashboard**: http://localhost:8080/dashboard (protected)
+- **Member Registration**: http://localhost:8080/register (public form with Google Places)
+- **Registration Success**: http://localhost:8080/register-success (redirect after signup)
+
+## Quick Start Checklist
+1. ✅ Install dependencies: `npm install`
+2. ✅ Set up .env file with DATABASE_URL and JWT_SECRET
+3. ✅ Optional: Set up Google Maps API in `src/client/.env.local`
+4. ✅ Start dev server: `nohup npm run dev > dev.log 2>&1 &`
+5. ✅ Verify both servers running: `tail -20 dev.log`
+6. ✅ Access http://localhost:8080/ in browser
+7. ✅ Create first admin at /setup
+8. ✅ Test member registration at /register (with address autocomplete)
+9. ✅ Test admin dashboard and member management
 
 ## API Endpoints
 
@@ -192,22 +345,32 @@ GOOGLE_PLACES_API_KEY=your-google-places-api-key (optional)
 - Separate client/server TypeScript configurations
 - Shared types between frontend and backend
 
+## Current Status (Completed Features)
+✅ **Authentication System**: Complete with JWT, bcrypt, rate limiting  
+✅ **Member Registration**: Full 6-step wizard with Google Places autocomplete  
+✅ **Database Schema**: All tables with proper relationships and migrations  
+✅ **Age Calculation**: Accurate age calculation considering birth month  
+✅ **Address Validation**: Google Places API integration with postcode extraction  
+✅ **Form Validation**: Boolean prop validation fixes and error handling  
+✅ **Development Setup**: Proper server management and environment configuration  
+✅ **Admin Dashboard**: Statistics, quick actions, member management  
+✅ **Attendance System**: Individual and bulk recording with history  
+
 ## Known Limitations
-1. Google Places API integration pending
-2. Monthly reporting with charts needs completion
-3. Email notifications not implemented
-4. File upload for profile pictures not implemented
-5. Advanced filtering and sorting on member list
-6. Bulk member import functionality
+1. Monthly reporting with charts needs completion
+2. Email notifications not implemented
+3. File upload for profile pictures not implemented
+4. Advanced filtering and sorting on member list
+5. Bulk member import functionality
+6. PDF report generation needs Chart.js integration
 
 ## Next Development Priorities
-1. Complete monthly reporting with charts and PDF generation
-2. Implement Google Places API for address validation
-3. Add deployment configuration for Hostinger/Render.com
-4. Email notification system for important events
-5. Advanced member filtering and search
-6. Data export functionality for member lists
-7. Backup and restore functionality
+1. **High Priority**: Complete monthly reporting with charts and PDF generation
+2. **Medium Priority**: Add deployment configuration for Hostinger/Render.com
+3. **Low Priority**: Email notification system for important events
+4. **Low Priority**: Advanced member filtering and search
+5. **Low Priority**: Data export functionality for member lists
+6. **Low Priority**: Backup and restore functionality
 
 ## Testing Notes
 - Manual testing required for all user flows

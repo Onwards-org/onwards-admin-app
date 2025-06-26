@@ -17,12 +17,13 @@ import {
 const router = express.Router()
 
 const MemberSchema = v.object({
-  name: v.pipe(v.string(), v.minLength(2, 'Name must be at least 2 characters')),
-  phone: v.pipe(v.string(), v.regex(/^(\+44|0)[1-9]\d{8,9}$/, 'Please enter a valid UK phone number')),
-  email: v.pipe(v.string(), v.email('Please enter a valid email address')),
-  address: v.pipe(v.string(), v.minLength(10, 'Please enter a complete address')),
-  birth_month: v.pipe(v.number(), v.minValue(1), v.maxValue(12)),
-  birth_year: v.pipe(v.number(), v.minValue(1900), v.maxValue(new Date().getFullYear())),
+  name: v.string([v.minLength(2, 'Name must be at least 2 characters')]),
+  phone: v.string([v.regex(/^(\+44|0)[1-9]\d{8,9}$/, 'Please enter a valid UK phone number')]),
+  email: v.string([v.email('Please enter a valid email address')]),
+  address: v.string([v.minLength(10, 'Please enter a complete address')]),
+  postcode: v.optional(v.string()),
+  birth_month: v.number([v.minValue(1), v.maxValue(12)]),
+  birth_year: v.number([v.minValue(1900), v.maxValue(new Date().getFullYear())]),
   employment_status: v.picklist(EMPLOYMENT_OPTIONS as any),
   ethnicity: v.picklist(ETHNICITY_OPTIONS as any),
   religion: v.picklist(RELIGION_OPTIONS as any),
@@ -34,8 +35,8 @@ const MemberSchema = v.object({
   additional_health_info: v.optional(v.string()),
   privacy_accepted: v.literal(true, 'You must accept the privacy statement'),
   emergency_contacts: v.array(v.object({
-    name: v.pipe(v.string(), v.minLength(2)),
-    phone: v.pipe(v.string(), v.regex(/^(\+44|0)[1-9]\d{8,9}$/))
+    name: v.string([v.minLength(2)]),
+    phone: v.string([v.regex(/^(\+44|0)[1-9]\d{8,9}$/)])
   })),
   medical_conditions: v.optional(v.array(v.picklist(MEDICAL_CONDITIONS_OPTIONS as any))),
   challenging_behaviours: v.optional(v.array(v.picklist(CHALLENGING_BEHAVIOURS_OPTIONS as any)))

@@ -12,6 +12,7 @@ export interface Member {
   phone: string
   email: string
   address: string
+  postcode: string
   birth_month: number
   birth_year: number
   employment_status: string

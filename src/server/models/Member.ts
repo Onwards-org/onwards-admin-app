@@ -11,17 +11,17 @@ export class MemberModel {
       
       const memberQuery = `
         INSERT INTO members (
-          name, phone, email, address, birth_month, birth_year,
+          name, phone, email, address, postcode, birth_month, birth_year,
           employment_status, ethnicity, religion, gender, sexual_orientation,
           transgender_status, hobbies_interests, pregnancy_maternity,
           additional_health_info, privacy_accepted
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
         RETURNING *
       `
       
       const memberResult = await client.query(memberQuery, [
         memberData.name, memberData.phone, memberData.email, memberData.address,
-        memberData.birth_month, memberData.birth_year, memberData.employment_status,
+        memberData.postcode, memberData.birth_month, memberData.birth_year, memberData.employment_status,
         memberData.ethnicity, memberData.religion, memberData.gender,
         memberData.sexual_orientation, memberData.transgender_status,
         memberData.hobbies_interests, memberData.pregnancy_maternity,

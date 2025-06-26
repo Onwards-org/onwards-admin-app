@@ -122,7 +122,14 @@ export class AttendanceModel {
       stats.sexual_orientations[row.sexual_orientation] = (stats.sexual_orientations[row.sexual_orientation] || 0) + 1
       stats.employment_status[row.employment_status] = (stats.employment_status[row.employment_status] || 0) + 1
       
-      const age = currentYear - row.birth_year
+      // Calculate age properly considering birth month
+      const currentMonth = currentDate.getMonth() + 1 // getMonth() returns 0-11, we need 1-12
+      let age = currentYear - row.birth_year
+      
+      // If birth month hasn't occurred yet this year, subtract 1 from age
+      if (currentMonth < row.birth_month) {
+        age--
+      }
       let ageGroup = '65+'
       if (age < 18) ageGroup = 'Under 18'
       else if (age < 25) ageGroup = '18-24'

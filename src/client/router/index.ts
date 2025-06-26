@@ -27,6 +27,12 @@ const router = createRouter({
       meta: { public: true }
     },
     {
+      path: '/register-success',
+      name: 'RegisterSuccess',
+      component: () => import('@/pages/RegisterSuccess.vue'),
+      meta: { public: true }
+    },
+    {
       path: '/dashboard',
       name: 'Dashboard',
       component: () => import('@/pages/Dashboard.vue'),

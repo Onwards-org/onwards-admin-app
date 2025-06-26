@@ -80,7 +80,7 @@
                     Joined {{ formatDate(member.created_at) }}
                   </p>
                   <p class="text-sm text-gray-500">
-                    Age: {{ calculateAge(member.birth_year) }}
+                    Age: {{ calculateAge(member.birth_year, member.birth_month) }}
                   </p>
                 </div>
               </div>
@@ -170,8 +170,19 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-GB')
 }
 
-const calculateAge = (birthYear: number) => {
-  return new Date().getFullYear() - birthYear
+const calculateAge = (birthYear: number, birthMonth: number) => {
+  const today = new Date()
+  const currentYear = today.getFullYear()
+  const currentMonth = today.getMonth() + 1 // getMonth() returns 0-11, we need 1-12
+  
+  let age = currentYear - birthYear
+  
+  // If birth month hasn't occurred yet this year, subtract 1 from age
+  if (currentMonth < birthMonth) {
+    age--
+  }
+  
+  return age
 }
 
 const viewMember = (memberId: number) => {

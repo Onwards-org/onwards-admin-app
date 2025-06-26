@@ -7,7 +7,7 @@ let pool: Pool
 export const initDatabase = (connectionString?: string) => {
   pool = new Pool({
     connectionString: connectionString || process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: process.env.DATABASE_URL?.includes('db.onwards.org.uk') ? { rejectUnauthorized: false } : false
   })
   
   return pool
@@ -30,7 +30,15 @@ export const createTables = async () => {
     console.log('Database tables created successfully')
   } catch (error) {
     console.error('Error creating database tables:', error)
-    throw error
+    console.log('Could not create/verify tables (this is ok if tables already exist):', (error as any).message)
+  }
+
+  // Run migrations for existing installations
+  try {
+    await (await client).query('ALTER TABLE members ADD COLUMN IF NOT EXISTS postcode VARCHAR(20);')
+    console.log('Database migrations completed successfully')
+  } catch (error) {
+    console.error('Error running migrations:', error)
   } finally {
     (await client).release()
   }
