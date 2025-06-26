@@ -27,12 +27,12 @@
       <div class="px-4 py-6 sm:px-0">
         <div class="mb-6">
           <h1 class="text-2xl font-bold text-gray-900">Attendance Recording</h1>
-          <p class="text-gray-600 mt-1">Record member attendance for community sessions</p>
+          <p class="text-gray-600 mt-1">Record member attendance for Onwards meetings</p>
         </div>
 
         <div class="bg-white shadow rounded-lg p-6 mb-6">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-lg font-medium text-gray-900">Select Date</h2>
+            <h2 class="text-lg font-medium text-gray-900">Find Attendance Record</h2>
             <div class="flex items-center space-x-4">
               <input
                 v-model="selectedDate"
@@ -44,7 +44,7 @@
                 :disabled="loading"
                 class="px-4 py-2 bg-onwards-blue text-white rounded hover:bg-blue-600 disabled:opacity-50"
               >
-                {{ loading ? 'Loading...' : 'Load Members' }}
+                {{ loading ? 'Loading...' : 'Search' }}
               </button>
             </div>
           </div>
@@ -53,11 +53,18 @@
         <div v-if="members.length > 0" class="bg-white shadow rounded-lg">
           <div class="px-6 py-4 border-b border-gray-200">
             <div class="flex items-center justify-between">
-              <h2 class="text-lg font-medium text-gray-900">
-                Attendance for {{ formatDate(selectedDate) }}
-              </h2>
-              <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-2">
+              <div class="flex items-center space-x-3">
+                <h2 class="text-lg font-medium text-gray-900 whitespace-nowrap">Attendance for</h2>
+                <input
+                  v-model="selectedDate"
+                  @change="loadMembersForDate"
+                  type="date"
+                  class="px-3 py-2 border border-gray-300 rounded-md focus:ring-onwards-blue focus:border-onwards-blue text-sm"
+                />
+              </div>
+              <div class="flex items-center justify-between w-full">
+                <div></div>
+                <div class="flex items-center">
                   <input
                     v-model="searchQuery"
                     type="text"
@@ -65,27 +72,55 @@
                     class="px-3 py-2 border border-gray-300 rounded-md focus:ring-onwards-blue focus:border-onwards-blue"
                   />
                 </div>
-                <button
-                  @click="markAllPresent"
-                  class="px-3 py-2 text-sm bg-green-100 text-green-800 rounded hover:bg-green-200"
-                >
-                  Mark All Present
-                </button>
-                <button
-                  @click="markAllAbsent"
-                  class="px-3 py-2 text-sm bg-red-100 text-red-800 rounded hover:bg-red-200"
-                >
-                  Mark All Absent
-                </button>
-                <button
-                  @click="saveAttendance"
-                  :disabled="saving"
-                  class="px-4 py-2 bg-onwards-blue text-white rounded hover:bg-blue-600 disabled:opacity-50"
-                >
-                  {{ saving ? 'Saving...' : 'Save Attendance' }}
-                </button>
+                <div class="flex items-center space-x-2">
+                  <button
+                    @click="showCancelledMeetingModal"
+                    class="px-3 py-2 text-sm bg-orange-100 text-orange-800 rounded hover:bg-orange-200"
+                  >
+                    Cancelled Meeting
+                  </button>
+                  <button
+                    @click="saveAttendance"
+                    :disabled="saving"
+                    class="px-4 py-2 bg-onwards-blue text-white rounded hover:bg-blue-600 disabled:opacity-50"
+                  >
+                    {{ saving ? 'Saving...' : 'Save Attendance' }}
+                  </button>
+                  <div class="relative">
+                    <button
+                      @click="showDropdown = !showDropdown"
+                      class="px-3 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded hover:bg-gray-50"
+                    >
+                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
+                      </svg>
+                    </button>
+                    <div
+                      v-if="showDropdown"
+                      class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10"
+                    >
+                      <button
+                        @click="markAllPresent(); showDropdown = false"
+                        class="block w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-green-50"
+                      >
+                        Mark All Present
+                      </button>
+                      <button
+                        @click="markAllAbsent(); showDropdown = false"
+                        class="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-red-50"
+                      >
+                        Mark All Absent
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+          </div>
+
+          <div class="px-6 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
+            <div class="text-sm font-medium text-gray-700">Members</div>
+            <div class="text-sm text-gray-600 font-medium">Click to mark as present</div>
           </div>
 
           <div class="divide-y divide-gray-200">
@@ -134,6 +169,46 @@
         </div>
       </div>
     </div>
+
+    <!-- Cancelled Meeting Modal -->
+    <div v-if="showCancelledModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+      <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+          <h3 class="text-lg font-medium text-gray-900 mb-4">Cancel Meeting</h3>
+          <p class="text-sm text-gray-600 mb-4">
+            This will mark the meeting as cancelled and void all attendance for {{ formatDate(selectedDate) }}.
+          </p>
+          
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Cancellation Notes (Optional)
+            </label>
+            <textarea
+              v-model="cancellationNotes"
+              rows="3"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-onwards-blue focus:border-onwards-blue"
+              placeholder="Enter reason for cancellation..."
+            ></textarea>
+          </div>
+
+          <div class="flex items-center justify-end space-x-3">
+            <button
+              @click="closeCancelledModal"
+              class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+            >
+              Cancel
+            </button>
+            <button
+              @click="confirmCancelMeeting"
+              :disabled="cancelling"
+              class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
+            >
+              {{ cancelling ? 'Cancelling...' : 'Confirm Cancellation' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -158,6 +233,10 @@ const saving = ref(false)
 const searchQuery = ref('')
 const successMessage = ref('')
 const errorMessage = ref('')
+const showDropdown = ref(false)
+const showCancelledModal = ref(false)
+const cancellationNotes = ref('')
+const cancelling = ref(false)
 
 const filteredMembers = computed(() => {
   if (!searchQuery.value) return members.value
@@ -253,6 +332,64 @@ const saveAttendance = async () => {
     console.error('Error saving attendance:', error)
   } finally {
     saving.value = false
+  }
+}
+
+const showCancelledMeetingModal = () => {
+  showCancelledModal.value = true
+}
+
+const closeCancelledModal = () => {
+  showCancelledModal.value = false
+  cancellationNotes.value = ''
+}
+
+const confirmCancelMeeting = async () => {
+  if (!selectedDate.value) return
+  
+  cancelling.value = true
+  errorMessage.value = ''
+  successMessage.value = ''
+  
+  try {
+    // Clear all attendance for this date by marking everyone as absent
+    const attendanceRecords = members.value.map(member => ({
+      member_id: member.id,
+      present: false
+    }))
+    
+    const response = await fetch('/api/attendance/record-bulk', {
+      method: 'POST',
+      headers: authStore.getAuthHeaders(),
+      body: JSON.stringify({
+        date: selectedDate.value,
+        attendance_records: attendanceRecords,
+        cancelled: true,
+        cancellation_notes: cancellationNotes.value
+      })
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to cancel meeting')
+    }
+    
+    successMessage.value = `Meeting cancelled for ${formatDate(selectedDate.value)}. All attendance has been voided.`
+    
+    // Update local state to reflect all members as absent
+    members.value.forEach(member => {
+      member.present = false
+    })
+    
+    closeCancelledModal()
+    
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 5000)
+  } catch (error) {
+    errorMessage.value = 'Failed to cancel meeting. Please try again.'
+    console.error('Error cancelling meeting:', error)
+  } finally {
+    cancelling.value = false
   }
 }
 

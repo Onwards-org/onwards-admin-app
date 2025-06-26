@@ -119,6 +119,19 @@ When successful, you should see in `dev.log`:
    - Frontend likely not running - check dev.log for Vite errors
    - Ensure both [0] (backend) and [1] (frontend) processes are running
 
+5. **bcrypt Native Binding Issues in WSL**
+   - Error: `invalid ELF header` or `ERR_DLOPEN_FAILED` with bcrypt
+   - Solution: Replace bcrypt with bcryptjs (pure JavaScript implementation)
+   ```bash
+   npm uninstall bcrypt @types/bcrypt
+   npm install bcryptjs @types/bcryptjs
+   ```
+   - Update imports in `src/server/models/User.ts`:
+   ```typescript
+   import bcrypt from 'bcryptjs'  // Changed from 'bcrypt'
+   ```
+   - bcryptjs has the same API as bcrypt but works across all platforms
+
 **Common Issues:**
 1. **Tailwind CSS version issue**: Use stable Tailwind v3, not v4 alpha:
    ```bash

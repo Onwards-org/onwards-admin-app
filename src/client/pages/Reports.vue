@@ -158,13 +158,13 @@
             </div>
           </div>
 
-          <!-- Postcodes -->
-          <div v-if="Object.keys(report.stats.postcodes).length > 0" class="bg-white shadow rounded-lg p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Geographic Distribution (Postcodes)</h3>
-            <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              <div v-for="(count, postcode) in report.stats.postcodes" :key="postcode" class="text-center">
-                <div class="text-sm text-gray-600">{{ postcode }}</div>
-                <div class="font-medium">{{ count }}</div>
+          <!-- Geographic Locations -->
+          <div v-if="report.stats.locations && Object.keys(report.stats.locations).length > 0" class="bg-white shadow rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Geographic Location</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div v-for="(count, location) in report.stats.locations" :key="location" class="flex justify-between p-3 bg-gray-50 rounded">
+                <span class="text-sm text-gray-700 font-medium">{{ location }}</span>
+                <span class="font-semibold text-onwards-blue">{{ count }}</span>
               </div>
             </div>
           </div>

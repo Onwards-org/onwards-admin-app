@@ -105,6 +105,83 @@ export class AttendanceModel {
     const result = await pool.query(query, [startDate, endDate])
     const data = result.rows
     
+    // Postcode to location mapping for West Midlands area
+    const getLocationFromPostcode = (postcode: string): string => {
+      if (!postcode) return 'Unknown'
+      
+      const postcodeUpper = postcode.toUpperCase()
+      
+      // Walsall postcodes
+      if (postcodeUpper.startsWith('WS1') || postcodeUpper.startsWith('WS2') || 
+          postcodeUpper.startsWith('WS3') || postcodeUpper.startsWith('WS4') || 
+          postcodeUpper.startsWith('WS5') || postcodeUpper.startsWith('WS6') ||
+          postcodeUpper.startsWith('WS7') || postcodeUpper.startsWith('WS8') ||
+          postcodeUpper.startsWith('WS9') || postcodeUpper.startsWith('WS10') ||
+          postcodeUpper.startsWith('WS11') || postcodeUpper.startsWith('WS12') ||
+          postcodeUpper.startsWith('WS13') || postcodeUpper.startsWith('WS14') ||
+          postcodeUpper.startsWith('WS15')) {
+        return 'Walsall'
+      }
+      
+      // Streetly (part of Sutton Coldfield)
+      if (postcodeUpper.startsWith('B74') && (postcodeUpper.includes('1') || postcodeUpper.includes('2') || postcodeUpper.includes('3'))) {
+        return 'Streetly'
+      }
+      
+      // Sutton Coldfield
+      if (postcodeUpper.startsWith('B72') || postcodeUpper.startsWith('B73') || 
+          postcodeUpper.startsWith('B74') || postcodeUpper.startsWith('B75') || 
+          postcodeUpper.startsWith('B76')) {
+        return 'Sutton Coldfield'
+      }
+      
+      // Kingstanding
+      if (postcodeUpper.startsWith('B44') || 
+          (postcodeUpper.startsWith('B43') && postcodeUpper.includes('6'))) {
+        return 'Kingstanding'
+      }
+      
+      // Erdington
+      if (postcodeUpper.startsWith('B23') || postcodeUpper.startsWith('B24')) {
+        return 'Erdington'
+      }
+      
+      // Boldmere
+      if (postcodeUpper.startsWith('B73') && (postcodeUpper.includes('5') || postcodeUpper.includes('6'))) {
+        return 'Boldmere'
+      }
+      
+      // Great Barr
+      if (postcodeUpper.startsWith('B43') || postcodeUpper.startsWith('B42')) {
+        return 'Great Barr'
+      }
+      
+      // Handsworth
+      if (postcodeUpper.startsWith('B20') || postcodeUpper.startsWith('B21')) {
+        return 'Handsworth'
+      }
+      
+      // Birmingham City Centre
+      if (postcodeUpper.startsWith('B1') || postcodeUpper.startsWith('B2') || 
+          postcodeUpper.startsWith('B3') || postcodeUpper.startsWith('B4') || 
+          postcodeUpper.startsWith('B5')) {
+        return 'Birmingham City Centre'
+      }
+      
+      // Other Birmingham areas
+      if (postcodeUpper.startsWith('B')) {
+        return 'Birmingham (Other)'
+      }
+      
+      // Tamworth
+      if (postcodeUpper.startsWith('B77') || postcodeUpper.startsWith('B78') || 
+          postcodeUpper.startsWith('B79')) {
+        return 'Tamworth'
+      }
+      
+      return 'Other'
+    }
+
     const currentYear = new Date().getFullYear()
     const stats = {
       genders: {} as Record<string, number>,
@@ -113,7 +190,8 @@ export class AttendanceModel {
       disabilities: {} as Record<string, number>,
       sexual_orientations: {} as Record<string, number>,
       employment_status: {} as Record<string, number>,
-      postcodes: {} as Record<string, number>
+      postcodes: {} as Record<string, number>,
+      locations: {} as Record<string, number>
     }
     
     data.forEach((row: any) => {
@@ -123,6 +201,7 @@ export class AttendanceModel {
       stats.employment_status[row.employment_status] = (stats.employment_status[row.employment_status] || 0) + 1
       
       // Calculate age properly considering birth month
+      const currentDate = new Date()
       const currentMonth = currentDate.getMonth() + 1 // getMonth() returns 0-11, we need 1-12
       let age = currentYear - row.birth_year
       
@@ -142,6 +221,10 @@ export class AttendanceModel {
       
       if (row.postcode) {
         stats.postcodes[row.postcode] = (stats.postcodes[row.postcode] || 0) + 1
+        
+        // Map postcode to location
+        const location = getLocationFromPostcode(row.postcode)
+        stats.locations[location] = (stats.locations[location] || 0) + 1
       }
       
       if (row.medical_conditions) {
@@ -162,5 +245,50 @@ export class AttendanceModel {
     const pool = getPool()
     const query = 'DELETE FROM attendance WHERE id = $1'
     await pool.query(query, [id])
+  }
+
+  static async getWeeklyAttendanceCount(): Promise<number> {
+    const pool = getPool()
+    const oneWeekAgo = new Date()
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
+    
+    const query = `
+      SELECT COUNT(DISTINCT member_id) as count
+      FROM attendance
+      WHERE date >= $1 AND present = true
+    `
+    
+    const result = await pool.query(query, [oneWeekAgo])
+    return parseInt(result.rows[0].count) || 0
+  }
+
+  static async getMonthlyAttendanceCount(): Promise<number> {
+    const pool = getPool()
+    const oneMonthAgo = new Date()
+    oneMonthAgo.setDate(oneMonthAgo.getDate() - 30)
+    
+    const query = `
+      SELECT COUNT(DISTINCT member_id) as count
+      FROM attendance
+      WHERE date >= $1 AND present = true
+    `
+    
+    const result = await pool.query(query, [oneMonthAgo])
+    return parseInt(result.rows[0].count) || 0
+  }
+
+  static async getNewMembersThisMonth(): Promise<number> {
+    const pool = getPool()
+    const oneMonthAgo = new Date()
+    oneMonthAgo.setDate(oneMonthAgo.getDate() - 30)
+    
+    const query = `
+      SELECT COUNT(*) as count
+      FROM members
+      WHERE created_at >= $1
+    `
+    
+    const result = await pool.query(query, [oneMonthAgo])
+    return parseInt(result.rows[0].count) || 0
   }
 }

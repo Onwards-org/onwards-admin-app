@@ -7,7 +7,7 @@
             <h1 class="text-xl font-semibold text-gray-900">Onwards Admin</h1>
           </div>
           <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-700">Welcome, {{ authStore.user?.username }}</span>
+            <span class="text-sm text-gray-700">Welcome {{ authStore.user?.username }}!</span>
             <button
               @click="logout"
               class="text-sm text-gray-500 hover:text-gray-700"
@@ -101,6 +101,18 @@
               >
                 Generate Monthly Report
               </router-link>
+              <router-link
+                to="/admin"
+                class="block w-full text-left px-4 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
+              >
+                Manage Admins
+              </router-link>
+              <router-link
+                to="/forms"
+                class="block w-full text-left px-4 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
+              >
+                Onwards Forms
+              </router-link>
             </div>
           </div>
 
@@ -163,12 +175,24 @@ const loadStats = async () => {
       const memberData = await memberResponse.json()
       stats.value.totalMembers = memberData.pagination.total
     }
+
+    // Load attendance statistics
+    const attendanceResponse = await fetch('/api/attendance/stats', {
+      headers: authStore.getAuthHeaders()
+    })
+    if (attendanceResponse.ok) {
+      const attendanceData = await attendanceResponse.json()
+      stats.value.weeklyAttendance = attendanceData.weeklyAttendance
+      stats.value.monthlyAttendance = attendanceData.monthlyAttendance
+      stats.value.newMembers = attendanceData.newMembers
+    }
   } catch (error) {
     console.error('Failed to load stats:', error)
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await authStore.verifyToken()
   loadStats()
 })
 </script>

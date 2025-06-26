@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pkill:*)",
+      "Bash(npm install)",
+      "Bash(npm run dev:server:*)",
+      "Bash(tsx:*)",
+      "Bash(npm rebuild:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npm install:*)",
+      "Bash(rm:*)",
+      "Bash(npm run dev:client:*)",
+      "Bash(sudo rm:*)",
+      "Bash(ls:*)",
+      "Bash(./node_modules/.bin/vite:*)"
+    ],
+    "deny": []
+  }
+}

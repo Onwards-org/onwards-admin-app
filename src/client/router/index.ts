@@ -67,6 +67,12 @@ const router = createRouter({
       name: 'Admin',
       component: () => import('@/pages/Admin.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/forms',
+      name: 'Forms',
+      component: () => import('@/pages/Forms.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })

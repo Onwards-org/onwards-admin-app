@@ -1,5 +1,5 @@
 import { getPool } from './database.js'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import type { User } from '../../shared/types.js'
 
 export class UserModel {
