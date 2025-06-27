@@ -307,16 +307,39 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
         doc.fillColor('black').fontSize(10)
         doc.text(value.toString(), barX, barY - 15, { width: barWidth - 20, align: 'center' })
         
-        // Rotate labels if requested (for medical conditions)
-        if (rotateLabels) {
-          doc.save()
-          doc.translate(barX + (barWidth - 20) / 2, chartY + chartHeight + 60)
-          doc.rotate(-90)
-          doc.fontSize(9).text(label, 0, 0, { align: 'center' })
-          doc.restore()
-        } else {
-          doc.text(label, barX, chartY + chartHeight + 10, { width: barWidth - 20, align: 'center' })
-        }
+        // Position labels at bottom of chart
+        const bottomOfChart = chartY + chartHeight
+        doc.fillColor('black').fontSize(9)
+        doc.text(label, barX, bottomOfChart + 10, { width: barWidth - 20, align: 'center' })
+      })
+    }
+
+    // Helper function to draw horizontal bar chart
+    const drawHorizontalBarChart = (data: Record<string, number>, title: string, colors: string[]) => {
+      const chartX = 150  // Leave space for labels on left
+      const chartY = 180
+      const chartWidth = 350
+      const chartHeight = 250
+      const maxValue = Math.max(...Object.values(data))
+      const barHeight = chartHeight / Object.keys(data).length
+      
+      doc.fontSize(18).text(title, 60, 120, { align: 'center', width: 480 })
+      
+      Object.entries(data).forEach(([label, value], index) => {
+        const barWidth = (value / maxValue) * chartWidth
+        const barX = chartX
+        const barY = chartY + index * barHeight + 5
+        
+        const color = colors[index % colors.length]
+        doc.rect(barX, barY, barWidth, barHeight - 10).fill(color)
+        
+        // Value label at end of bar
+        doc.fillColor('black').fontSize(10)
+        doc.text(value.toString(), barX + barWidth + 5, barY + (barHeight - 10) / 2 - 5)
+        
+        // Category label on left side
+        doc.fontSize(9)
+        doc.text(label, 20, barY + (barHeight - 10) / 2 - 4, { width: 120, align: 'right' })
       })
     }
 
@@ -347,7 +370,7 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
       { title: 'Age Groups', data: sortAgeGroups(report.stats.age_groups), type: 'vertical', colors: colorPalettes.green, rotateLabels: false },
       { title: 'Sexual Orientation', data: report.stats.sexual_orientations, type: 'pie', colors: colorPalettes.red },
       { title: 'Employment Status', data: report.stats.employment_status, type: 'pie', colors: colorPalettes.orange },
-      { title: 'Medical Conditions', data: report.stats.disabilities, type: 'vertical', colors: colorPalettes.purple, rotateLabels: true },
+      { title: 'Medical Conditions', data: report.stats.disabilities, type: 'horizontal', colors: colorPalettes.purple },
       { title: 'Geographic Location', data: report.stats.locations || {}, type: 'pie', colors: colorPalettes.teal }
     ]
     
@@ -358,6 +381,8 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
         
         if (section.type === 'pie') {
           drawPieChart(section.data, section.title, section.colors)
+        } else if (section.type === 'horizontal') {
+          drawHorizontalBarChart(section.data, section.title, section.colors)
         } else {
           drawVerticalBarChart(section.data, section.title, section.colors, section.rotateLabels)
         }
@@ -367,6 +392,37 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
     doc.end()
   } catch (error) {
     console.error('Generate PDF report error:', error)
+    res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+router.get('/stats', requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    // Get current date info
+    const now = new Date()
+    const startOfWeek = new Date(now)
+    startOfWeek.setDate(now.getDate() - now.getDay()) // Start of current week (Sunday)
+    startOfWeek.setHours(0, 0, 0, 0)
+    
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1)
+    
+    // Get weekly attendance (this week)
+    const weeklyAttendance = await AttendanceModel.getAttendanceCount(startOfWeek, now)
+    
+    // Get monthly attendance (this month)
+    const monthlyAttendance = await AttendanceModel.getAttendanceCount(startOfMonth, now)
+    
+    // Get new members (registered this month)
+    const newMembers = await AttendanceModel.getNewMembersCount(startOfMonth, now)
+    
+    res.json({
+      weeklyAttendance,
+      monthlyAttendance,
+      newMembers
+    })
+  } catch (error) {
+    console.error('Get attendance stats error:', error)
     res.status(500).json({ error: 'Internal server error' })
   }
 })

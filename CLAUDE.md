@@ -32,77 +32,135 @@ src/
 ```
 
 ## Development Commands
-- `npm run dev` - Start both client and server in development mode
+
+### Basic Commands
+- `npm run dev` - Start both client and server in development mode (interactive)
 - `npm run dev:client` - Start only the Vue.js development server
 - `npm run dev:server` - Start only the Express.js development server
 - `npm run build` - Build both client and server for production
 - `npm run typecheck` - Run TypeScript type checking
 - `npm run lint` - Run ESLint code linting
 
+### Server Management Commands (CRITICAL)
+- `npm run dev:detached` - Start servers in background (detached from terminal)
+- `npm run dev:status` - Check server status from logs
+- `npm run dev:logs` - Watch live server logs
+- `npm run dev:stop` - Stop all development servers
+- `npm run dev:restart` - Stop and restart servers
+- `npm run dev:clean` - Force kill all processes and clean ports
+- `npm run dev:health` - Check backend health endpoint
+- `npm run dev:ports` - Check which processes are using ports 3001/8080
+
 ## Development Server Management (CRITICAL)
 
-### Starting the Development Server
-**ALWAYS use this command when starting the dev server through Claude:**
+### Quick Start (Recommended)
+**For Claude/automated environments, ALWAYS use:**
 
 ```bash
-nohup npm run dev > dev.log 2>&1 &
+npm run dev:detached
 ```
 
+This automatically:
+- Starts both servers in background using `nohup`
+- Returns control to terminal immediately (no blocking)
+- Redirects output to `dev.log` for monitoring
+- Shows the background process PID
+- Provides next steps for checking status
+
 **Why this is essential:**
-- Regular `npm run dev` will block the terminal and timeout after 2 minutes when run through Claude
-- The `nohup` command detaches the process from the terminal session
-- Output is redirected to `dev.log` file for monitoring
-- The `&` runs the process in the background
+- Regular `npm run dev` blocks the terminal and times out in automated environments
+- The script properly detaches from the terminal session
+- Returns control immediately with clear feedback
+- Prevents process hanging and timeout issues
 - This starts BOTH frontend (port 8080) and backend (port 3001) servers
 
 ### Checking Server Status
 ```bash
-# Check if servers are running
-tail -20 dev.log
+# Primary status check - shows recent server logs
+npm run dev:status     # View last 15 lines of dev.log
 
-# Check for both services
-tail -50 dev.log | grep -E "(vite|8080|\[1\])" # Frontend
-tail -50 dev.log | grep -E "(Server running|3001|\[0\])" # Backend
+# Health verification - tests actual connectivity
+npm run dev:health     # Tests both frontend/backend endpoints
 
-# Check processes
-ps aux | grep -E "(npm|tsx|vite)" | grep -v grep
+# Port usage check - shows what's using development ports
+npm run dev:ports      # Shows processes on ports 3001,8080,8081,8082
 ```
 
 ### Stopping the Development Server
 ```bash
-# Method 1: Kill all npm processes (recommended)
-pkill -f npm && sleep 2
+# Graceful stop - stops npm and concurrently processes
+npm run dev:stop       # Recommended for normal shutdown
 
-# Method 2: Kill by specific process types
-pkill -f "npm run dev" && pkill -f tsx && pkill -f vite
-
-# Method 3: Force kill by port if needed
-lsof -ti:3001 | xargs kill -9  # Backend
-lsof -ti:8080 | xargs kill -9  # Frontend
+# Force cleanup - kills all project processes and frees ports
+npm run dev:clean      # Use when dev:stop doesn't work
 ```
 
 ### Restarting After Changes
 ```bash
-# Full restart (when environment variables or configs change)
-pkill -f npm && sleep 3 && nohup npm run dev > dev.log 2>&1 &
+# Complete restart cycle
+npm run dev:restart    # Stops and starts automatically
 
-# Quick restart for most changes (Vite has HMR)
-# Usually not needed - Vite auto-reloads on file changes
+# Manual steps (if needed)
+npm run dev:stop
+npm run dev:detached
 ```
+
+### Process Management Details
+
+**The improved scripts handle:**
+1. **Proper background execution** - No terminal blocking
+2. **Comprehensive cleanup** - Kills all project-related processes
+3. **Port management** - Frees stuck ports (3001, 8080, 8081, 8082)
+4. **Error suppression** - Uses `|| true` to prevent script failures
+5. **Timeout handling** - Prevents hanging curl requests
+6. **Clear feedback** - Shows status and next steps
+
+**What gets cleaned up:**
+- Main npm processes running dev scripts
+- Background tsx processes (backend)
+- Background vite processes (frontend) 
+- Any processes using development ports
+- Concurrent/parallel process managers
 
 ### Expected Output
-When successful, you should see in `dev.log`:
+
+**Starting servers:**
+```bash
+$ npm run dev:detached
+Servers starting in background (PID: 8701)
+Check status: npm run dev:status
 ```
+
+**Checking status (when ready):**
+```bash
+$ npm run dev:status
+=== Development Server Status ===
 [0] Server running on port 3001
-[0] Health check: http://localhost:3001/api/health
-[1] VITE v5.4.19  ready in 134 ms
+[0] Health check: http://localhost:3001/api/health  
+[1] VITE v5.4.19  ready in 4293 ms
 [1] ➜  Local:   http://localhost:8080/
-[1] ➜  Network: http://192.168.1.221:8080/
+[1] ➜  Network: http://10.255.255.254:8080/
+```
+
+**Health check:**
+```bash
+$ npm run dev:health
+✓ Backend OK
+✓ Frontend OK
+```
+
+**Stopping servers:**
+```bash
+$ npm run dev:stop
+Stopping development servers...
+Done
 ```
 
 ### Common Issues and Solutions
 1. **Port Already in Use (EADDRINUSE)**
    ```bash
+   npm run dev:clean     # Recommended: Clean all processes and ports
+   # Or manually:
    lsof -ti:3001 | xargs kill -9
    lsof -ti:8080 | xargs kill -9
    ```

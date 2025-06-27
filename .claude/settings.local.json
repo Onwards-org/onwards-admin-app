@@ -12,7 +12,14 @@
       "Bash(npm run dev:client:*)",
       "Bash(sudo rm:*)",
       "Bash(ls:*)",
-      "Bash(./node_modules/.bin/vite:*)"
+      "Bash(./node_modules/.bin/vite:*)",
+      "Bash(curl:*)",
+      "Bash(kill:*)",
+      "Bash(npm run dev:clean:*)",
+      "Bash(npm run dev:detached:*)",
+      "Bash(npm run dev:status:*)",
+      "Bash(npm run dev:health:*)",
+      "Bash(npm run dev:restart:*)"
     ],
     "deny": []
   }

@@ -291,4 +291,28 @@ export class AttendanceModel {
     const result = await pool.query(query, [oneMonthAgo])
     return parseInt(result.rows[0].count) || 0
   }
+
+  static async getAttendanceCount(startDate: Date, endDate: Date): Promise<number> {
+    const pool = getPool()
+    const query = `
+      SELECT COUNT(DISTINCT member_id) as count
+      FROM attendance
+      WHERE date >= $1 AND date <= $2 AND present = true
+    `
+    
+    const result = await pool.query(query, [startDate, endDate])
+    return parseInt(result.rows[0].count) || 0
+  }
+
+  static async getNewMembersCount(startDate: Date, endDate: Date): Promise<number> {
+    const pool = getPool()
+    const query = `
+      SELECT COUNT(*) as count
+      FROM members
+      WHERE created_at >= $1 AND created_at <= $2
+    `
+    
+    const result = await pool.query(query, [startDate, endDate])
+    return parseInt(result.rows[0].count) || 0
+  }
 }

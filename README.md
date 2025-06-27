@@ -141,19 +141,53 @@ A comprehensive web application for managing community members, attendance track
 ### Available Scripts
 
 ```bash
-# Development
-npm run dev          # Start both client and server
-npm run dev:client   # Start only frontend
-npm run dev:server   # Start only backend
+# Development - Basic
+npm run dev              # Start both client and server (interactive)
+npm run dev:client       # Start only frontend
+npm run dev:server       # Start only backend
+
+# Development - Server Management
+npm run dev:detached     # Start servers in background (recommended for automation)
+npm run dev:status       # Check server status from logs
+npm run dev:logs         # Watch live server logs
+npm run dev:stop         # Stop all development servers
+npm run dev:restart      # Stop and restart servers
+npm run dev:clean        # Force kill all processes and clean ports
+npm run dev:health       # Check backend health endpoint
+npm run dev:ports        # Check which processes are using ports
 
 # Production
-npm run build        # Build for production
-npm start           # Start production server
+npm run build            # Build for production
+npm start               # Start production server
 
 # Code Quality
-npm run typecheck   # TypeScript type checking
-npm run lint        # ESLint code linting
-npm run lint:fix    # Fix ESLint issues
+npm run typecheck       # TypeScript type checking
+npm run lint            # ESLint code linting
+npm run lint:fix        # Fix ESLint issues
+```
+
+### Development Server Management
+
+**Recommended for automated environments or when you need servers to run in background:**
+
+```bash
+npm run dev:detached     # Start servers detached from terminal
+npm run dev:status       # Check if servers are running
+```
+
+**Troubleshooting server issues:**
+
+```bash
+npm run dev:clean        # Force cleanup all processes and ports
+npm run dev:restart      # Clean restart
+```
+
+**Monitoring:**
+
+```bash
+npm run dev:logs         # Watch live logs
+npm run dev:health       # Test backend connectivity
+npm run dev:ports        # Check port usage
 ```
 
 ### Project Structure
