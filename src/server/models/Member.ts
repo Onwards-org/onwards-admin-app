@@ -1,6 +1,31 @@
 import { getPool } from './database.js'
 import type { Member, EmergencyContact, MedicalCondition, ChallengingBehaviour } from '../../shared/types.js'
 
+interface MemberDemographicData {
+  gender: string
+  birth_year: number
+  ethnicity: string
+  sexual_orientation: string
+  employment_status: string
+  postcode: string
+  medical_conditions: string[]
+}
+
+interface MemberReport {
+  month: number
+  year: number
+  totalMembers: number
+  demographicData: MemberDemographicData[]
+  summary: {
+    genderBreakdown: Record<string, number>
+    ageGroups: Record<string, number>
+    ethnicityBreakdown: Record<string, number>
+    employmentBreakdown: Record<string, number>
+    locationBreakdown: Record<string, number>
+    medicalConditionsBreakdown: Record<string, number>
+  }
+}
+
 export class MemberModel {
   static async create(memberData: Omit<Member, 'id' | 'created_at' | 'updated_at'>): Promise<Member> {
     const pool = getPool()
@@ -157,5 +182,125 @@ export class MemberModel {
     const result = await pool.query(query, [memberId])
     
     return result.rows
+  }
+  
+  static async generateMonthlyReport(month: number, year: number): Promise<MemberReport> {
+    const pool = getPool()
+    const startDate = new Date(year, month - 1, 1)
+    const endDate = new Date(year, month, 0)
+    
+    const query = `
+      SELECT DISTINCT
+        m.gender,
+        m.birth_year,
+        m.ethnicity,
+        m.sexual_orientation,
+        m.employment_status,
+        COALESCE(m.postcode, SUBSTRING(m.address FROM '[A-Z]{1,2}[0-9]{1,2}[A-Z]?')) as postcode,
+        array_agg(DISTINCT mc.condition) FILTER (WHERE mc.condition IS NOT NULL) as medical_conditions
+      FROM members m
+      LEFT JOIN medical_conditions mc ON m.id = mc.member_id
+      WHERE m.created_at >= $1 AND m.created_at <= $2
+      GROUP BY m.id, m.gender, m.birth_year, m.ethnicity, m.sexual_orientation, m.employment_status, m.postcode, m.address
+    `
+    
+    const result = await pool.query(query, [startDate, endDate])
+    const data = result.rows
+    
+    // Helper function to get location from postcode
+    const getLocationFromPostcode = (postcode: string): string => {
+      if (!postcode) return 'Unknown'
+      
+      const postcodeUpper = postcode.toUpperCase()
+      
+      // Walsall postcodes
+      if (postcodeUpper.startsWith('WS1') || postcodeUpper.startsWith('WS2') || 
+          postcodeUpper.startsWith('WS3') || postcodeUpper.startsWith('WS4') || 
+          postcodeUpper.startsWith('WS5') || postcodeUpper.startsWith('WS6') ||
+          postcodeUpper.startsWith('WS7') || postcodeUpper.startsWith('WS8') ||
+          postcodeUpper.startsWith('WS9') || postcodeUpper.startsWith('WS10') ||
+          postcodeUpper.startsWith('WS11') || postcodeUpper.startsWith('WS12') ||
+          postcodeUpper.startsWith('WS13') || postcodeUpper.startsWith('WS14') ||
+          postcodeUpper.startsWith('WS15')) {
+        return 'Walsall'
+      }
+      
+      // Birmingham postcodes
+      if (postcodeUpper.startsWith('B')) {
+        return 'Birmingham'
+      }
+      
+      // West Midlands general
+      if (postcodeUpper.startsWith('DY') || postcodeUpper.startsWith('WV')) {
+        return 'West Midlands'
+      }
+      
+      return 'Other'
+    }
+    
+    // Helper function to get age group
+    const getAgeGroup = (birthYear: number): string => {
+      const currentYear = new Date().getFullYear()
+      const age = currentYear - birthYear
+      
+      if (age < 18) return 'Under 18'
+      if (age < 25) return '18-24'
+      if (age < 35) return '25-34'
+      if (age < 45) return '35-44'
+      if (age < 55) return '45-54'
+      if (age < 65) return '55-64'
+      return '65+'
+    }
+    
+    // Process demographic data and create summaries
+    const genderBreakdown: Record<string, number> = {}
+    const ageGroups: Record<string, number> = {}
+    const ethnicityBreakdown: Record<string, number> = {}
+    const employmentBreakdown: Record<string, number> = {}
+    const locationBreakdown: Record<string, number> = {}
+    const medicalConditionsBreakdown: Record<string, number> = {}
+    
+    data.forEach((member: MemberDemographicData) => {
+      // Gender breakdown
+      genderBreakdown[member.gender] = (genderBreakdown[member.gender] || 0) + 1
+      
+      // Age groups
+      const ageGroup = getAgeGroup(member.birth_year)
+      ageGroups[ageGroup] = (ageGroups[ageGroup] || 0) + 1
+      
+      // Ethnicity breakdown
+      ethnicityBreakdown[member.ethnicity] = (ethnicityBreakdown[member.ethnicity] || 0) + 1
+      
+      // Employment breakdown
+      employmentBreakdown[member.employment_status] = (employmentBreakdown[member.employment_status] || 0) + 1
+      
+      // Location breakdown
+      const location = getLocationFromPostcode(member.postcode)
+      locationBreakdown[location] = (locationBreakdown[location] || 0) + 1
+      
+      // Medical conditions breakdown
+      if (member.medical_conditions && Array.isArray(member.medical_conditions)) {
+        member.medical_conditions.forEach((condition: string) => {
+          if (condition) {
+            medicalConditionsBreakdown[condition] = (medicalConditionsBreakdown[condition] || 0) + 1
+          }
+        })
+      }
+    })
+    
+    return {
+      month,
+      year,
+      totalMembers: data.length,
+      demographicData: data,
+      summary: {
+        genderBreakdown,
+        ageGroups,
+        ethnicityBreakdown,
+        employmentBreakdown,
+        locationBreakdown,
+        medicalConditionsBreakdown
+      }
+    }
   }
 }

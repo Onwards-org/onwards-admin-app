@@ -2,13 +2,19 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import { initDatabase, createTables } from './models/database.js'
 import authRoutes from './routes/auth.js'
 import memberRoutes from './routes/members.js'
 import attendanceRoutes from './routes/attendance.js'
+import uclaRoutes from './routes/ucla-loneliness-scale.js'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const app = express()
-const PORT = process.env.PORT || 3000
+const PORT = 8080
 
 app.use(helmet())
 app.use(cors())
@@ -18,9 +24,23 @@ app.use(express.urlencoded({ extended: true }))
 app.use('/api/auth', authRoutes)
 app.use('/api/members', memberRoutes)
 app.use('/api/attendance', attendanceRoutes)
+app.use('/api/ucla-loneliness-scale', uclaRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+// Serve static files from dist/client directory
+const clientDistPath = path.join(__dirname, '../../dist/client')
+app.use(express.static(clientDistPath))
+
+// Handle SPA routing - serve index.html for non-API routes
+app.get('*', (req, res) => {
+  if (!req.path.startsWith('/api')) {
+    res.sendFile(path.join(clientDistPath, 'index.html'))
+  } else {
+    res.status(404).json({ error: 'API endpoint not found' })
+  }
 })
 
 const startServer = async () => {

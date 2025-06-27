@@ -274,8 +274,20 @@ Done
 - Individual and bulk attendance recording
 - Date-based attendance queries
 - Member attendance history
-- Monthly report generation
-- PDF report export
+- Monthly report generation with demographics
+- PDF report export with charts (pie charts and bar charts)
+- Dashboard statistics endpoint (`/api/attendance/stats`)
+
+### 4a. PDF Report Generation
+- **Chart Types**: Supports pie charts and both vertical/horizontal bar charts
+- **Horizontal Bar Charts**: Used for Medical Conditions (long text labels)
+- **Vertical Bar Charts**: Used for Age Groups (short labels)
+- **Chart Functions**:
+  - `drawPieChart()` - Gender, Sexual Orientation, Employment, Geographic Location
+  - `drawVerticalBarChart()` - Age Groups (with proper bottom labels)
+  - `drawHorizontalBarChart()` - Medical Conditions (labels on left, bars extend right)
+- **Text Positioning**: Fixed label positioning issues by using appropriate chart types
+- **Color Palettes**: High contrast colors for accessibility
 
 ### 5. Admin Dashboard (`/src/client/pages/Dashboard.vue`)
 - Statistics overview

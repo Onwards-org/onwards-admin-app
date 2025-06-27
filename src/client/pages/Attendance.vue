@@ -1,23 +1,23 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <nav class="bg-white shadow">
+  <div class="min-h-screen" style="background-color: #eecbf5;">
+    <nav class="shadow" style="background-color: #a672b0;">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center space-x-8">
-            <router-link to="/dashboard" class="text-xl font-semibold text-gray-900">
+            <router-link to="/dashboard" class="text-xl font-semibold text-white">
               Onwards Admin
             </router-link>
             <nav class="flex space-x-8">
-              <router-link to="/dashboard" class="text-gray-500 hover:text-gray-700">Dashboard</router-link>
-              <router-link to="/members" class="text-gray-500 hover:text-gray-700">Members</router-link>
-              <router-link to="/attendance" class="text-onwards-blue font-medium">Attendance</router-link>
-              <router-link to="/reports" class="text-gray-500 hover:text-gray-700">Reports</router-link>
-              <router-link to="/admin" class="text-gray-500 hover:text-gray-700">Admin</router-link>
+              <router-link to="/dashboard" class="text-purple-200 hover:text-white">Dashboard</router-link>
+              <router-link to="/members" class="text-purple-200 hover:text-white">Members</router-link>
+              <router-link to="/attendance" class="text-white font-medium">Attendance</router-link>
+              <router-link to="/reports" class="text-purple-200 hover:text-white">Reports</router-link>
+              <router-link to="/admin" class="text-purple-200 hover:text-white">Admin</router-link>
             </nav>
           </div>
           <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-700">{{ authStore.user?.username }}</span>
-            <button @click="logout" class="text-sm text-gray-500 hover:text-gray-700">Logout</button>
+            <span class="text-sm text-white">{{ authStore.user?.username }}</span>
+            <button @click="logout" class="text-sm text-purple-200 hover:text-white">Logout</button>
           </div>
         </div>
       </div>

@@ -19,7 +19,17 @@
       "Bash(npm run dev:detached:*)",
       "Bash(npm run dev:status:*)",
       "Bash(npm run dev:health:*)",
-      "Bash(npm run dev:restart:*)"
+      "Bash(npm run dev:restart:*)",
+      "Bash(npm run dev:ports:*)",
+      "Bash(npm run dev:stop:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm run build:client:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(ss:*)",
+      "Bash(npx tsc:*)",
+      "Bash(timeout 3 tsx src/server/index.ts 2>&1)",
+      "Bash(node:*)"
     ],
     "deny": []
   }

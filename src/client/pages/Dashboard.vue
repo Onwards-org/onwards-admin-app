@@ -1,16 +1,16 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <nav class="bg-white shadow">
+  <div class="min-h-screen" style="background-color: #eecbf5;">
+    <nav class="shadow" style="background-color: #a672b0;">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center">
-            <h1 class="text-xl font-semibold text-gray-900">Onwards Admin</h1>
+            <h1 class="text-xl font-semibold text-white">Onwards Admin</h1>
           </div>
           <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-700">Welcome {{ authStore.user?.username }}!</span>
+            <span class="text-sm text-white">Welcome {{ authStore.user?.username }}!</span>
             <button
               @click="logout"
-              class="text-sm text-gray-500 hover:text-gray-700"
+              class="text-sm text-purple-200 hover:text-white"
             >
               Logout
             </button>
@@ -96,22 +96,22 @@
                 View All Members
               </router-link>
               <router-link
+                to="/forms"
+                class="block w-full text-left px-4 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
+              >
+                Onwards Forms
+              </router-link>
+              <router-link
                 to="/reports"
                 class="block w-full text-left px-4 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
               >
-                Generate Monthly Report
+                Generate Reports
               </router-link>
               <router-link
                 to="/admin"
                 class="block w-full text-left px-4 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
               >
-                Manage Admins
-              </router-link>
-              <router-link
-                to="/forms"
-                class="block w-full text-left px-4 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
-              >
-                Onwards Forms
+                Settings
               </router-link>
             </div>
           </div>

@@ -73,6 +73,24 @@ const router = createRouter({
       name: 'Forms',
       component: () => import('@/pages/Forms.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/forms/ucla-loneliness-scale',
+      name: 'UCLALonelinessScale',
+      component: () => import('@/pages/UCLALonelinessScale.vue'),
+      meta: { public: true }
+    },
+    {
+      path: '/forms/member-registrations/submissions',
+      name: 'MemberSubmissions',
+      component: () => import('@/pages/MemberSubmissions.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/forms/ucla-loneliness-scale/submissions',
+      name: 'UCLASubmissions',
+      component: () => import('@/pages/UCLASubmissions.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })

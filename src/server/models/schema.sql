@@ -69,6 +69,17 @@ CREATE TABLE IF NOT EXISTS attendance (
     UNIQUE(member_id, date)
 );
 
+-- UCLA Loneliness Scale submissions table
+CREATE TABLE IF NOT EXISTS ucla_loneliness_scale (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    isolated_response VARCHAR(50) NOT NULL CHECK (isolated_response IN ('hardly_ever', 'some_of_the_time', 'often')),
+    left_out_response VARCHAR(50) NOT NULL CHECK (left_out_response IN ('hardly_ever', 'some_of_the_time', 'often')),
+    lack_companionship_response VARCHAR(50) NOT NULL CHECK (lack_companionship_response IN ('hardly_ever', 'some_of_the_time', 'often')),
+    submission_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_members_email ON members(email);
 CREATE INDEX IF NOT EXISTS idx_attendance_date ON attendance(date);
@@ -76,6 +87,8 @@ CREATE INDEX IF NOT EXISTS idx_attendance_member_date ON attendance(member_id, d
 CREATE INDEX IF NOT EXISTS idx_emergency_contacts_member ON emergency_contacts(member_id);
 CREATE INDEX IF NOT EXISTS idx_medical_conditions_member ON medical_conditions(member_id);
 CREATE INDEX IF NOT EXISTS idx_challenging_behaviours_member ON challenging_behaviours(member_id);
+CREATE INDEX IF NOT EXISTS idx_ucla_loneliness_scale_date ON ucla_loneliness_scale(submission_date);
+CREATE INDEX IF NOT EXISTS idx_ucla_loneliness_scale_name ON ucla_loneliness_scale(name);
 
 -- Function to update the updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

@@ -225,6 +225,7 @@ src/
 ### Attendance Endpoints
 - `POST /api/attendance/record` - Record attendance (authenticated)
 - `POST /api/attendance/record-bulk` - Bulk attendance (authenticated)
+- `GET /api/attendance/stats` - Dashboard statistics (authenticated)
 - `GET /api/attendance/report/:year/:month` - Monthly report (authenticated)
 - `GET /api/attendance/report/:year/:month/pdf` - PDF report (authenticated)
 
@@ -266,9 +267,14 @@ src/
 - **Geographic**: Postcode-based location analysis
 
 ### Export Options
-- **PDF Reports**: Professional formatted reports
+- **PDF Reports**: Professional formatted reports with charts
+- **Chart Types**: 
+  - Pie charts for gender, employment, ethnicity, sexual orientation, geographic distribution
+  - Vertical bar charts for age groups
+  - Horizontal bar charts for medical conditions (optimized for long text labels)
 - **Statistical Summaries**: Key metrics and percentages
 - **Attendance Data**: Participation rates and trends
+- **Dashboard Statistics**: Real-time weekly/monthly attendance and new member counts
 
 ## 🚢 Deployment
 

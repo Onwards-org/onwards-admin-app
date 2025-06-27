@@ -1,23 +1,23 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <nav class="bg-white shadow">
+  <div class="min-h-screen" style="background-color: #eecbf5;">
+    <nav class="shadow" style="background-color: #a672b0;">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
           <div class="flex items-center space-x-8">
-            <router-link to="/dashboard" class="text-xl font-semibold text-gray-900">
+            <router-link to="/dashboard" class="text-xl font-semibold text-white">
               Onwards Admin
             </router-link>
             <nav class="flex space-x-8">
-              <router-link to="/dashboard" class="text-gray-500 hover:text-gray-700">Dashboard</router-link>
-              <router-link to="/members" class="text-gray-500 hover:text-gray-700">Members</router-link>
-              <router-link to="/attendance" class="text-gray-500 hover:text-gray-700">Attendance</router-link>
-              <router-link to="/reports" class="text-gray-500 hover:text-gray-700">Reports</router-link>
-              <router-link to="/admin" class="text-onwards-blue font-medium">Admin</router-link>
+              <router-link to="/dashboard" class="text-purple-200 hover:text-white">Dashboard</router-link>
+              <router-link to="/members" class="text-purple-200 hover:text-white">Members</router-link>
+              <router-link to="/attendance" class="text-purple-200 hover:text-white">Attendance</router-link>
+              <router-link to="/reports" class="text-purple-200 hover:text-white">Reports</router-link>
+              <router-link to="/admin" class="text-white font-medium">Admin</router-link>
             </nav>
           </div>
           <div class="flex items-center space-x-4">
-            <span class="text-sm text-gray-700">{{ authStore.user?.username }}</span>
-            <button @click="logout" class="text-sm text-gray-500 hover:text-gray-700">Logout</button>
+            <span class="text-sm text-white">{{ authStore.user?.username }}</span>
+            <button @click="logout" class="text-sm text-purple-200 hover:text-white">Logout</button>
           </div>
         </div>
       </div>
@@ -25,15 +25,35 @@
 
     <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-6 sm:px-0">
-        <div class="mb-6">
-          <h1 class="text-2xl font-bold text-gray-900">Admin Management</h1>
+        <div class="mb-8">
+          <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
           <p class="text-gray-600 mt-1">Manage administrator accounts and system settings</p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- Add New Admin -->
-          <div class="bg-white shadow rounded-lg p-6">
-            <h2 class="text-lg font-medium text-gray-900 mb-4">Add New Administrator</h2>
+        <!-- Admin Management Section -->
+        <div class="mb-8">
+          <div class="bg-white shadow rounded-lg">
+            <button
+              @click="adminManagementOpen = !adminManagementOpen"
+              class="w-full px-6 py-4 text-left flex items-center justify-between border-b border-gray-200 hover:bg-gray-50"
+            >
+              <h2 class="text-xl font-semibold text-gray-900">Admin Management</h2>
+              <svg
+                class="w-5 h-5 text-gray-500 transform transition-transform"
+                :class="{ 'rotate-180': adminManagementOpen }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            <div v-show="adminManagementOpen" class="p-6">
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Add New Admin -->
+                <div class="bg-gray-50 rounded-lg p-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Add New Administrator</h3>
             
             <form @submit.prevent="createAdmin" class="space-y-4">
               <div>
@@ -83,14 +103,74 @@
               {{ createError }}
             </div>
 
-            <div v-if="createSuccess" class="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-              {{ createSuccess }}
+                <div v-if="createSuccess" class="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+                  {{ createSuccess }}
+                </div>
+              </div>
+              
+              <!-- Existing Administrators -->
+              <div class="bg-gray-50 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Existing Administrators</h3>
+
+                <div v-if="loading" class="text-center text-gray-500">
+                  Loading administrators...
+                </div>
+
+                <div v-else class="space-y-3">
+                  <div
+                    v-for="admin in admins"
+                    :key="admin.id"
+                    class="bg-white rounded-lg p-4 flex items-center justify-between shadow-sm"
+                  >
+                    <div>
+                      <h4 class="text-sm font-medium text-gray-900">{{ admin.username }}</h4>
+                      <p class="text-sm text-gray-500">
+                        Created {{ formatDate(admin.created_at) }}
+                      </p>
+                    </div>
+                    <div>
+                      <button
+                        v-if="admin.id !== authStore.user?.id && admins.length > 1"
+                        @click="deleteAdmin(admin.id, admin.username)"
+                        class="px-3 py-1 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+                      >
+                        Delete
+                      </button>
+                      <span v-else class="text-gray-400 text-sm px-3 py-1">
+                        {{ admin.id === authStore.user?.id ? 'Current User' : 'Last Admin' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             </div>
           </div>
+        </div>
 
-          <!-- Change Password -->
-          <div class="bg-white shadow rounded-lg p-6">
-            <h2 class="text-lg font-medium text-gray-900 mb-4">Change Your Password</h2>
+        <!-- Account Settings Section -->
+        <div class="mb-8">
+          <div class="bg-white shadow rounded-lg">
+            <button
+              @click="accountSettingsOpen = !accountSettingsOpen"
+              class="w-full px-6 py-4 text-left flex items-center justify-between border-b border-gray-200 hover:bg-gray-50"
+            >
+              <h2 class="text-xl font-semibold text-gray-900">Account Settings</h2>
+              <svg
+                class="w-5 h-5 text-gray-500 transform transition-transform"
+                :class="{ 'rotate-180': accountSettingsOpen }"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            <div v-show="accountSettingsOpen" class="p-6">
+              <!-- Change Password -->
+              <div class="bg-gray-50 rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Change Your Password</h3>
             
             <form @submit.prevent="changePassword" class="space-y-4">
               <div>
@@ -140,45 +220,9 @@
               {{ passwordError }}
             </div>
 
-            <div v-if="passwordSuccess" class="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-              {{ passwordSuccess }}
-            </div>
-          </div>
-        </div>
-
-        <!-- Existing Administrators -->
-        <div class="mt-8 bg-white shadow rounded-lg">
-          <div class="px-6 py-4 border-b border-gray-200">
-            <h2 class="text-lg font-medium text-gray-900">Existing Administrators</h2>
-          </div>
-
-          <div v-if="loading" class="p-6 text-center text-gray-500">
-            Loading administrators...
-          </div>
-
-          <div v-else class="divide-y divide-gray-200">
-            <div
-              v-for="admin in admins"
-              :key="admin.id"
-              class="px-6 py-4 flex items-center justify-between"
-            >
-              <div>
-                <h3 class="text-sm font-medium text-gray-900">{{ admin.username }}</h3>
-                <p class="text-sm text-gray-500">
-                  Created {{ formatDate(admin.created_at) }}
-                </p>
-              </div>
-              <div>
-                <button
-                  v-if="admin.id !== authStore.user?.id && admins.length > 1"
-                  @click="deleteAdmin(admin.id, admin.username)"
-                  class="text-red-600 hover:text-red-700 text-sm"
-                >
-                  Delete
-                </button>
-                <span v-else class="text-gray-400 text-sm">
-                  {{ admin.id === authStore.user?.id ? 'Current User' : 'Last Admin' }}
-                </span>
+                <div v-if="passwordSuccess" class="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+                  {{ passwordSuccess }}
+                </div>
               </div>
             </div>
           </div>
@@ -200,6 +244,9 @@ const admins = ref<any[]>([])
 const loading = ref(false)
 const creating = ref(false)
 const changingPassword = ref(false)
+
+const adminManagementOpen = ref(false)
+const accountSettingsOpen = ref(false)
 
 const newAdmin = ref({
   username: '',
