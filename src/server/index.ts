@@ -9,12 +9,14 @@ import authRoutes from './routes/auth.js'
 import memberRoutes from './routes/members.js'
 import attendanceRoutes from './routes/attendance.js'
 import uclaRoutes from './routes/ucla-loneliness-scale.js'
+import photoConsentRoutes from './routes/photoConsent.js'
+import wellbeingQuestionnaireRoutes from './routes/wellbeingQuestionnaire.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const app = express()
-const PORT = 8080
+const PORT = process.env.PORT || 3001
 
 app.use(helmet())
 app.use(cors())
@@ -25,6 +27,8 @@ app.use('/api/auth', authRoutes)
 app.use('/api/members', memberRoutes)
 app.use('/api/attendance', attendanceRoutes)
 app.use('/api/ucla-loneliness-scale', uclaRoutes)
+app.use('/api/photo-consent', photoConsentRoutes)
+app.use('/api/wellbeing-questionnaire', wellbeingQuestionnaireRoutes)
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })

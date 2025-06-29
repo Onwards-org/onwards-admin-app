@@ -438,6 +438,7 @@ VITE_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
 ✅ **Development Setup**: Proper server management and environment configuration  
 ✅ **Admin Dashboard**: Statistics, quick actions, member management  
 ✅ **Attendance System**: Individual and bulk recording with history  
+✅ **Photo Consent Form**: Complete form with adult/child consent, submissions management  
 
 ## Known Limitations
 1. Monthly reporting with charts needs completion
@@ -479,3 +480,83 @@ VITE_GOOGLE_MAPS_API_KEY=your-google-maps-api-key
 - Process management (PM2 recommended)
 - Database backup strategy
 - Log management and monitoring
+
+## Recent Updates (Latest Session)
+
+### Custom Purple Theme Implementation ✅
+- **Background Color**: `#eecbf5` (light purple/lavender) applied to all pages
+- **Navigation Bars**: `#a672b0` (medium purple) on all admin pages  
+- **PDF Styling**: All generated PDFs use the custom purple theme
+- **Text Colors**: Updated to white/purple-200 for proper contrast on purple backgrounds
+- **Files Updated**: All Vue pages in `/src/client/pages/` and CSS in `/src/client/assets/style.css`
+
+### PDF Generation Fixes ✅ 
+- **Chart Rendering Issues FIXED**: Replaced complex SVG paths with geometric drawing using line-to and arc steps
+- **Pie Charts**: Now use proper mathematical arc drawing with configurable steps instead of SVG paths
+- **Bar Charts**: Fixed spacing, sizing, and label positioning issues
+- **Data Validation**: Charts handle empty data gracefully with "No data available" messages
+- **Label Handling**: Truncate long labels to prevent text overflow
+- **Debug Information**: Added debug pages to verify data processing and troubleshoot issues
+
+### Member Registration PDF Reports ✅
+- **New Endpoint**: `/api/members/report/:year/:month/pdf` for demographic reports (was missing)
+- **MemberModel.generateMonthlyReport()**: New method for demographic data aggregation
+- **Demographics Included**: Gender distribution, age groups, medical conditions, geographic location
+- **Geographic Mapping**: Postcode to location mapping (Walsall, Birmingham, West Midlands)
+- **Age Categorization**: Proper age group buckets (Under 18, 18-24, 25-34, 35-44, 45-54, 55-64, 65+)
+- **Professional Layout**: Multi-page PDF with cover page and separate chart pages
+
+### Forms System Enhancements ✅
+- **Centralized Forms Page**: `/forms` with overview of all available forms
+- **Dual Button System**: "Fill Out Form" and "View Submissions" for each form
+- **Submission Tables**: Dedicated pages for viewing form submissions (`MemberSubmissions.vue`, `UCLASubmissions.vue`)
+- **Color-coded Responses**: UCLA responses use green/yellow/red color coding for visual clarity
+- **Flexbox Layout**: Fixed button alignment issues regardless of description text length
+
+### Development Server Improvements ✅
+- **Port Consolidation**: Everything runs on port 8080 (frontend serves backend API)
+- **tsx/esbuild Issues**: Use `npx tsx src/server/index.ts` for platform compatibility
+- **Manual Backend Start**: Alternative startup method for WSL environments
+- **Health Monitoring**: Proper health checks at `/api/health`
+
+### Chart Drawing Functions (Fixed)
+```typescript
+// Fixed pie chart drawing using geometric shapes instead of SVG paths
+function drawPieChart(doc: PDFDocument, x: number, y: number, radius: number, data: Record<string, number>, title: string)
+
+// Improved bar charts with proper spacing and label handling  
+function drawVerticalBarChart(doc: PDFDocument, x: number, y: number, width: number, height: number, data: Record<string, number>, title: string)
+
+function drawHorizontalBarChart(doc: PDFDocument, x: number, y: number, width: number, height: number, data: Record<string, number>, title: string)
+```
+
+### Photo Consent Form Implementation ✅
+- **Public Form**: `/photo-consent` - Photography consent form for events starting from 21/02/2025 onwards
+- **Event Types**: General (All events), Workshop, Social Event, Training Session, Community Outreach, Other
+- **Consent Options**: 
+  - Adult consent for individual participants
+  - Child consent for parents/guardians with multiple children
+  - Responsible adult details when child consent is provided
+- **Privacy Statement**: GDPR-compliant privacy information included
+- **Digital Signatures**: Type full name as digital signature
+- **Database Table**: `photo_consent_forms` with proper indexing
+- **Admin Management**: `/forms/photo-consent/submissions` for viewing and managing submissions
+- **API Endpoints**: 
+  - `POST /api/photo-consent/submit` (public)
+  - `GET /api/photo-consent` (admin - list submissions)
+  - `GET /api/photo-consent/:id` (admin - view details)
+  - `DELETE /api/photo-consent/:id` (admin - delete submission)
+
+### Key Files Modified
+- `/src/server/routes/members.ts` - Added PDF report endpoint and chart functions
+- `/src/server/models/Member.ts` - Added generateMonthlyReport method
+- `/src/client/assets/style.css` - Added custom purple background
+- All Vue pages in `/src/client/pages/` - Updated with purple navigation and backgrounds
+- `/src/client/pages/Forms.vue` - Added dual button system with flexbox layout
+- `/src/server/models/PhotoConsent.ts` - New model for photo consent forms
+- `/src/server/routes/photoConsent.ts` - New API routes for photo consent
+- `/src/client/pages/PhotoConsent.vue` - New public form for photo consent
+- `/src/client/pages/PhotoConsentSuccess.vue` - Success page after form submission
+- `/src/client/pages/PhotoConsentSubmissions.vue` - Admin page for managing submissions
+- `/src/server/models/schema.sql` - Added photo_consent_forms table
+- `/src/client/router/index.ts` - Added routes for photo consent form and submissions

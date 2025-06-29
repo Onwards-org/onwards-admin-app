@@ -81,13 +81,64 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="bg-white p-6 rounded-lg shadow">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Quick Actions</h3>
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
+              <div class="relative" ref="settingsDropdown">
+                <button
+                  @click="showSettingsDropdown = !showSettingsDropdown"
+                  class="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  </svg>
+                </button>
+                <div
+                  v-if="showSettingsDropdown"
+                  class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200"
+                >
+                  <div class="py-1">
+                    <router-link
+                      to="/admin"
+                      class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                      @click="showSettingsDropdown = false"
+                    >
+                      Admins
+                    </router-link>
+                    <div class="relative">
+                      <button
+                        @click="showAccountOptions = !showAccountOptions"
+                        class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors flex items-center justify-between"
+                      >
+                        Account
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m9 5 7 7-7 7"></path>
+                        </svg>
+                      </button>
+                      <div
+                        v-if="showAccountOptions"
+                        class="absolute left-full top-0 w-40 bg-white rounded-md shadow-lg border border-gray-200 ml-1"
+                      >
+                        <div class="py-1">
+                          <button
+                            @click="changePassword"
+                            class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                          >
+                            Change Password
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="space-y-3">
               <router-link
                 to="/attendance"
                 class="block w-full text-left px-4 py-3 bg-onwards-blue text-white rounded hover:bg-blue-600 transition-colors"
               >
-                Record Today's Attendance
+                Attendance
               </router-link>
               <router-link
                 to="/members"
@@ -106,12 +157,6 @@
                 class="block w-full text-left px-4 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
               >
                 Generate Reports
-              </router-link>
-              <router-link
-                to="/admin"
-                class="block w-full text-left px-4 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
-              >
-                Settings
               </router-link>
             </div>
           </div>
@@ -133,12 +178,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+const showSettingsDropdown = ref(false)
+const showAccountOptions = ref(false)
+const settingsDropdown = ref<HTMLElement | null>(null)
 
 const stats = ref({
   totalMembers: 0,
@@ -156,6 +205,20 @@ const recentActivity = ref([
 const logout = () => {
   authStore.logout()
   router.push('/login')
+}
+
+const changePassword = () => {
+  showSettingsDropdown.value = false
+  showAccountOptions.value = false
+  // Navigate to admin page with change password focus
+  router.push('/admin')
+}
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (settingsDropdown.value && !settingsDropdown.value.contains(event.target as Node)) {
+    showSettingsDropdown.value = false
+    showAccountOptions.value = false
+  }
 }
 
 const formatDate = (date: Date) => {
@@ -194,5 +257,10 @@ const loadStats = async () => {
 onMounted(async () => {
   await authStore.verifyToken()
   loadStats()
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>

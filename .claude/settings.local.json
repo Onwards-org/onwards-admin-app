@@ -29,7 +29,10 @@
       "Bash(ss:*)",
       "Bash(npx tsc:*)",
       "Bash(timeout 3 tsx src/server/index.ts 2>&1)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(timeout 3 curl -s http://localhost:3001/api/health)",
+      "Bash(timeout 3 curl -s http://localhost:808)",
+      "Bash(true)"
     ],
     "deny": []
   }

@@ -80,6 +80,40 @@ CREATE TABLE IF NOT EXISTS ucla_loneliness_scale (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Photo Consent Form table
+CREATE TABLE IF NOT EXISTS photo_consent_forms (
+    id SERIAL PRIMARY KEY,
+    event_date DATE NOT NULL,
+    event_type VARCHAR(100) NOT NULL DEFAULT 'GENERAL (All events)',
+    participant_name VARCHAR(255) NOT NULL,
+    participant_signature VARCHAR(255) NOT NULL,
+    adult_consent BOOLEAN NOT NULL DEFAULT TRUE,
+    child_consent BOOLEAN NOT NULL DEFAULT FALSE,
+    child_names TEXT, -- JSON array or comma-separated list of children's names
+    responsible_adult_name VARCHAR(255), -- Name of adult responsible for children
+    responsible_adult_signature VARCHAR(255), -- Signature of adult responsible for children
+    submission_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Wellbeing Index Questionnaire submissions table
+CREATE TABLE IF NOT EXISTS wellbeing_index_submissions (
+    id SERIAL PRIMARY KEY,
+    full_name VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    age_group VARCHAR(50) NOT NULL,
+    gender VARCHAR(50),
+    location VARCHAR(255),
+    wellbeing_score INTEGER NOT NULL CHECK (wellbeing_score >= 4 AND wellbeing_score <= 24),
+    mental_health_score INTEGER NOT NULL CHECK (mental_health_score >= 4 AND mental_health_score <= 24),
+    social_score INTEGER NOT NULL CHECK (social_score >= 4 AND social_score <= 24),
+    physical_health_score INTEGER NOT NULL CHECK (physical_health_score >= 4 AND physical_health_score <= 24),
+    purpose_score INTEGER NOT NULL CHECK (purpose_score >= 4 AND purpose_score <= 24),
+    responses JSONB NOT NULL, -- Store all individual question responses
+    additional_comments TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Create indexes for better performance
 CREATE INDEX IF NOT EXISTS idx_members_email ON members(email);
 CREATE INDEX IF NOT EXISTS idx_attendance_date ON attendance(date);
@@ -89,6 +123,12 @@ CREATE INDEX IF NOT EXISTS idx_medical_conditions_member ON medical_conditions(m
 CREATE INDEX IF NOT EXISTS idx_challenging_behaviours_member ON challenging_behaviours(member_id);
 CREATE INDEX IF NOT EXISTS idx_ucla_loneliness_scale_date ON ucla_loneliness_scale(submission_date);
 CREATE INDEX IF NOT EXISTS idx_ucla_loneliness_scale_name ON ucla_loneliness_scale(name);
+CREATE INDEX IF NOT EXISTS idx_photo_consent_submission_date ON photo_consent_forms(submission_date);
+CREATE INDEX IF NOT EXISTS idx_photo_consent_event_date ON photo_consent_forms(event_date);
+CREATE INDEX IF NOT EXISTS idx_wellbeing_submissions_created_at ON wellbeing_index_submissions(created_at);
+CREATE INDEX IF NOT EXISTS idx_wellbeing_submissions_name ON wellbeing_index_submissions(full_name);
+CREATE INDEX IF NOT EXISTS idx_wellbeing_submissions_age_group ON wellbeing_index_submissions(age_group);
+CREATE INDEX IF NOT EXISTS idx_wellbeing_submissions_location ON wellbeing_index_submissions(location);
 
 -- Function to update the updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()

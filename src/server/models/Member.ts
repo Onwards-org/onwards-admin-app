@@ -20,6 +20,7 @@ interface MemberReport {
     genderBreakdown: Record<string, number>
     ageGroups: Record<string, number>
     ethnicityBreakdown: Record<string, number>
+    sexualOrientationBreakdown: Record<string, number>
     employmentBreakdown: Record<string, number>
     locationBreakdown: Record<string, number>
     medicalConditionsBreakdown: Record<string, number>
@@ -256,6 +257,7 @@ export class MemberModel {
     const genderBreakdown: Record<string, number> = {}
     const ageGroups: Record<string, number> = {}
     const ethnicityBreakdown: Record<string, number> = {}
+    const sexualOrientationBreakdown: Record<string, number> = {}
     const employmentBreakdown: Record<string, number> = {}
     const locationBreakdown: Record<string, number> = {}
     const medicalConditionsBreakdown: Record<string, number> = {}
@@ -270,6 +272,9 @@ export class MemberModel {
       
       // Ethnicity breakdown
       ethnicityBreakdown[member.ethnicity] = (ethnicityBreakdown[member.ethnicity] || 0) + 1
+      
+      // Sexual orientation breakdown
+      sexualOrientationBreakdown[member.sexual_orientation] = (sexualOrientationBreakdown[member.sexual_orientation] || 0) + 1
       
       // Employment breakdown
       employmentBreakdown[member.employment_status] = (employmentBreakdown[member.employment_status] || 0) + 1
@@ -297,6 +302,7 @@ export class MemberModel {
         genderBreakdown,
         ageGroups,
         ethnicityBreakdown,
+        sexualOrientationBreakdown,
         employmentBreakdown,
         locationBreakdown,
         medicalConditionsBreakdown

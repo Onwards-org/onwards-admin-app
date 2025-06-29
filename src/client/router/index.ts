@@ -91,6 +91,42 @@ const router = createRouter({
       name: 'UCLASubmissions',
       component: () => import('@/pages/UCLASubmissions.vue'),
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/photo-consent',
+      name: 'PhotoConsent',
+      component: () => import('@/pages/PhotoConsent.vue'),
+      meta: { public: true }
+    },
+    {
+      path: '/photo-consent-success',
+      name: 'PhotoConsentSuccess',
+      component: () => import('@/pages/PhotoConsentSuccess.vue'),
+      meta: { public: true }
+    },
+    {
+      path: '/forms/photo-consent/submissions',
+      name: 'PhotoConsentSubmissions',
+      component: () => import('@/pages/PhotoConsentSubmissions.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/wellbeing-questionnaire',
+      name: 'WellbeingIndex',
+      component: () => import('@/pages/WellbeingIndex.vue'),
+      meta: { public: true }
+    },
+    {
+      path: '/wellbeing-questionnaire-success',
+      name: 'WellbeingIndexSuccess',
+      component: () => import('@/pages/WellbeingIndexSuccess.vue'),
+      meta: { public: true }
+    },
+    {
+      path: '/forms/wellbeing-questionnaire/submissions',
+      name: 'WellbeingIndexSubmissions',
+      component: () => import('@/pages/WellbeingIndexSubmissions.vue'),
+      meta: { requiresAuth: true }
     }
   ]
 })
