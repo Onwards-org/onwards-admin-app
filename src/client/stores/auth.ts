@@ -4,6 +4,7 @@ import { ref, computed } from 'vue'
 interface User {
   id: number
   username: string
+  profile_picture?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -102,6 +103,58 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
   
+  const uploadProfilePicture = async (file: File) => {
+    if (!token.value) throw new Error('Not authenticated')
+    
+    const formData = new FormData()
+    formData.append('profilePicture', file)
+    
+    const response = await fetch('/api/auth/upload-profile-picture', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token.value}`
+      },
+      body: formData
+    })
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Upload failed')
+    }
+    
+    const data = await response.json()
+    
+    // Update user profile picture
+    if (user.value) {
+      user.value.profile_picture = data.profile_picture
+    }
+    
+    return data
+  }
+  
+  const removeProfilePicture = async () => {
+    if (!token.value) throw new Error('Not authenticated')
+    
+    const response = await fetch('/api/auth/remove-profile-picture', {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token.value}`
+      }
+    })
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Remove failed')
+    }
+    
+    // Update user profile picture
+    if (user.value) {
+      user.value.profile_picture = undefined
+    }
+    
+    return await response.json()
+  }
+  
   return {
     token,
     user,
@@ -111,6 +164,8 @@ export const useAuthStore = defineStore('auth', () => {
     checkSetup,
     verifyToken,
     logout,
-    getAuthHeaders
+    getAuthHeaders,
+    uploadProfilePicture,
+    removeProfilePicture
   }
 })

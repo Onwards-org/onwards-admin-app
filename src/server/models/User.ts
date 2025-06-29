@@ -11,7 +11,7 @@ export class UserModel {
     const query = `
       INSERT INTO users (username, password_hash)
       VALUES ($1, $2)
-      RETURNING id, username, password_hash, created_at, updated_at
+      RETURNING id, username, password_hash, profile_picture, created_at, updated_at
     `
     
     const result = await pool.query(query, [username, passwordHash])
@@ -53,6 +53,12 @@ export class UserModel {
     await pool.query(query, [passwordHash, id])
   }
   
+  static async updateProfilePicture(id: number, profilePicturePath: string | null): Promise<void> {
+    const pool = getPool()
+    const query = 'UPDATE users SET profile_picture = $1 WHERE id = $2'
+    await pool.query(query, [profilePicturePath, id])
+  }
+  
   static async delete(id: number): Promise<void> {
     const pool = getPool()
     const query = 'DELETE FROM users WHERE id = $1'
@@ -61,7 +67,7 @@ export class UserModel {
   
   static async list(): Promise<Omit<User, 'password_hash'>[]> {
     const pool = getPool()
-    const query = 'SELECT id, username, created_at, updated_at FROM users ORDER BY created_at ASC'
+    const query = 'SELECT id, username, profile_picture, created_at, updated_at FROM users ORDER BY created_at ASC'
     const result = await pool.query(query)
     
     return result.rows

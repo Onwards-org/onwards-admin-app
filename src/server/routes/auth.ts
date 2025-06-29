@@ -1,9 +1,37 @@
 import express from 'express'
+import multer from 'multer'
+import path from 'path'
 import { UserModel } from '../models/User.js'
 import { generateToken, requireAuth, type AuthenticatedRequest } from '../middleware/auth.js'
 import rateLimit from 'express-rate-limit'
 
 const router = express.Router()
+
+// Configure multer for profile picture uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/profile-pictures/')
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname))
+  }
+})
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Accept only image files
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only image files are allowed'))
+    }
+  }
+})
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -33,7 +61,8 @@ router.post('/login', loginLimiter, async (req, res) => {
       token,
       user: {
         id: user.id,
-        username: user.username
+        username: user.username,
+        profile_picture: user.profile_picture
       }
     })
   } catch (error) {
@@ -67,7 +96,8 @@ router.post('/setup-first-admin', async (req, res) => {
       token,
       user: {
         id: user.id,
-        username: user.username
+        username: user.username,
+        profile_picture: user.profile_picture
       }
     })
   } catch (error) {
@@ -182,10 +212,56 @@ router.put('/change-password', requireAuth, async (req: AuthenticatedRequest, re
 })
 
 router.get('/verify', requireAuth, async (req: AuthenticatedRequest, res) => {
-  res.json({
-    user: req.user,
-    valid: true
-  })
+  try {
+    // Get fresh user data including profile picture
+    const user = await UserModel.findById(req.user!.id)
+    res.json({
+      user: user ? {
+        id: user.id,
+        username: user.username,
+        profile_picture: user.profile_picture
+      } : req.user,
+      valid: true
+    })
+  } catch (error) {
+    console.error('Verify error:', error)
+    res.json({
+      user: req.user,
+      valid: true
+    })
+  }
+})
+
+router.post('/upload-profile-picture', requireAuth, upload.single('profilePicture'), async (req: AuthenticatedRequest, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' })
+    }
+
+    const profilePicturePath = `/uploads/profile-pictures/${req.file.filename}`
+    await UserModel.updateProfilePicture(req.user!.id, profilePicturePath)
+
+    res.json({
+      message: 'Profile picture updated successfully',
+      profile_picture: profilePicturePath
+    })
+  } catch (error) {
+    console.error('Upload profile picture error:', error)
+    res.status(500).json({ error: 'Failed to upload profile picture' })
+  }
+})
+
+router.delete('/remove-profile-picture', requireAuth, async (req: AuthenticatedRequest, res) => {
+  try {
+    await UserModel.updateProfilePicture(req.user!.id, null)
+    
+    res.json({
+      message: 'Profile picture removed successfully'
+    })
+  } catch (error) {
+    console.error('Remove profile picture error:', error)
+    res.status(500).json({ error: 'Failed to remove profile picture' })
+  }
 })
 
 export default router

@@ -37,6 +37,9 @@ export const createTables = async () => {
   try {
     await (await client).query('ALTER TABLE members ADD COLUMN IF NOT EXISTS postcode VARCHAR(20);')
     
+    // Add profile_picture column to users table for existing installations
+    await (await client).query('ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_picture VARCHAR(255);')
+    
     // Add UCLA Loneliness Scale table if it doesn't exist
     await (await client).query(`
       CREATE TABLE IF NOT EXISTS ucla_loneliness_scale (

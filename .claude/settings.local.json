@@ -32,7 +32,10 @@
       "Bash(node:*)",
       "Bash(timeout 3 curl -s http://localhost:3001/api/health)",
       "Bash(timeout 3 curl -s http://localhost:808)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(mkdir:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run lint:*)"
     ],
     "deny": []
   }

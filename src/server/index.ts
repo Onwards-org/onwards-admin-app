@@ -34,6 +34,9 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
 
+// Serve static files for uploads
+app.use('/uploads', express.static(path.join(__dirname, '../../uploads')))
+
 // Serve static files from dist/client directory
 const clientDistPath = path.join(__dirname, '../../dist/client')
 app.use(express.static(clientDistPath))
