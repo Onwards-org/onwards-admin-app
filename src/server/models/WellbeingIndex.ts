@@ -12,9 +12,9 @@ export class WellbeingIndexModel {
   static async create(formData: Omit<WellbeingSubmission, 'id' | 'created_at' | 'purpose_score'>): Promise<WellbeingSubmission> {
     const pool = getPool()
     
-    // Calculate wellbeing score only
-    const wellbeingQuestions = ['happy_content', 'calm_relaxed', 'active_vigorous', 'daily_interest']
-    const purpose_score = wellbeingQuestions.reduce((sum, q) => sum + (formData.responses[q] || 0), 0)
+    // Calculate wellbeing score from all 5 questions (5-30 scale)
+    const wellbeingQuestions = ['happy_content', 'calm_relaxed', 'active_vigorous', 'fresh_rested', 'daily_interest']
+    const wellbeing_score = wellbeingQuestions.reduce((sum, q) => sum + (formData.responses[q] || 0), 0)
     
     // Update database constraints for simplified form
     try {
@@ -85,11 +85,11 @@ export class WellbeingIndexModel {
       'Not specified', // age_group  
       null, // gender
       null, // location
-      purpose_score, // wellbeing_score = purpose_score only
-      purpose_score, // mental_health_score = purpose_score (dummy data)
-      purpose_score, // social_score = purpose_score (dummy data)
-      purpose_score, // physical_health_score = purpose_score (dummy data)
-      purpose_score,
+      wellbeing_score, // wellbeing_score from all 5 questions
+      wellbeing_score, // mental_health_score = same as wellbeing
+      wellbeing_score, // social_score = same as wellbeing
+      wellbeing_score, // physical_health_score = same as wellbeing
+      wellbeing_score, // purpose_score = same as wellbeing
       JSON.stringify(formData.responses),
       null // additional_comments
     ])
@@ -149,8 +149,13 @@ export class WellbeingIndexModel {
   
   static async generateMonthlyReport(year: number, month: number): Promise<{
     totalResponses: number,
-    avgPurposeScore: number,
-    purposeScoreDistribution: Record<string, number>
+    avgWellbeingScore: number,
+    wellbeingScoreDistribution: Record<string, number>,
+    questionBreakdowns: Record<string, Record<string, number>>,
+    previousMonthComparison?: {
+      avgScoreDiff: number,
+      totalResponsesDiff: number
+    }
   }> {
     const pool = getPool()
     
@@ -161,49 +166,126 @@ export class WellbeingIndexModel {
       AND EXTRACT(MONTH FROM created_at) = $2
     `
     const result = await pool.query(query, [year, month])
-    const submissions = result.rows
+    const submissions = result.rows.map(row => ({
+      ...row,
+      responses: typeof row.responses === 'string' ? JSON.parse(row.responses) : row.responses
+    }))
+    
+    // Get previous month data for comparison
+    let prevMonth = month - 1
+    let prevYear = year
+    if (prevMonth === 0) {
+      prevMonth = 12
+      prevYear = year - 1
+    }
+    
+    const prevQuery = `
+      SELECT * FROM wellbeing_index_submissions 
+      WHERE EXTRACT(YEAR FROM created_at) = $1 
+      AND EXTRACT(MONTH FROM created_at) = $2
+    `
+    const prevResult = await pool.query(prevQuery, [prevYear, prevMonth])
+    const prevSubmissions = prevResult.rows
     
     if (submissions.length === 0) {
       return {
         totalResponses: 0,
-        avgPurposeScore: 0,
-        purposeScoreDistribution: {}
+        avgWellbeingScore: 0,
+        wellbeingScoreDistribution: {},
+        questionBreakdowns: {},
+        previousMonthComparison: prevSubmissions.length > 0 ? {
+          avgScoreDiff: -((prevSubmissions.reduce((sum, s) => sum + s.wellbeing_score, 0) / prevSubmissions.length)),
+          totalResponsesDiff: -prevSubmissions.length
+        } : undefined
       }
     }
     
     // Calculate averages
     const totalResponses = submissions.length
-    const avgPurposeScore = submissions.reduce((sum, s) => sum + s.purpose_score, 0) / totalResponses
+    const avgWellbeingScore = submissions.reduce((sum, s) => sum + s.wellbeing_score, 0) / totalResponses
     
-    // Calculate distributions
-    const purposeScoreDistribution: Record<string, number> = {
-      'Low (4-8)': 0,
-      'Below Average (9-12)': 0,
-      'Average (13-16)': 0,
-      'Above Average (17-20)': 0,
-      'High (21-24)': 0
+    // Previous month comparison
+    let previousMonthComparison: { avgScoreDiff: number, totalResponsesDiff: number } | undefined
+    if (prevSubmissions.length > 0) {
+      const prevAvgScore = prevSubmissions.reduce((sum, s) => sum + s.wellbeing_score, 0) / prevSubmissions.length
+      previousMonthComparison = {
+        avgScoreDiff: Math.round((avgWellbeingScore - prevAvgScore) * 10) / 10,
+        totalResponsesDiff: totalResponses - prevSubmissions.length
+      }
+    }
+    
+    // Calculate distributions for 5-30 scale
+    const wellbeingScoreDistribution: Record<string, number> = {
+      'Very Low (5-10)': 0,
+      'Low (11-15)': 0,
+      'Below Average (16-20)': 0,
+      'Average (21-25)': 0,
+      'High (26-30)': 0
     }
     
     submissions.forEach(submission => {
-      // Wellbeing score distribution
-      const score = submission.purpose_score
-      if (score >= 4 && score <= 8) {
-        purposeScoreDistribution['Low (4-8)']++
-      } else if (score >= 9 && score <= 12) {
-        purposeScoreDistribution['Below Average (9-12)']++
-      } else if (score >= 13 && score <= 16) {
-        purposeScoreDistribution['Average (13-16)']++
-      } else if (score >= 17 && score <= 20) {
-        purposeScoreDistribution['Above Average (17-20)']++
-      } else if (score >= 21 && score <= 24) {
-        purposeScoreDistribution['High (21-24)']++
+      // Wellbeing score distribution (5-30 scale)
+      const score = submission.wellbeing_score
+      if (score >= 5 && score <= 10) {
+        wellbeingScoreDistribution['Very Low (5-10)']++
+      } else if (score >= 11 && score <= 15) {
+        wellbeingScoreDistribution['Low (11-15)']++
+      } else if (score >= 16 && score <= 20) {
+        wellbeingScoreDistribution['Below Average (16-20)']++
+      } else if (score >= 21 && score <= 25) {
+        wellbeingScoreDistribution['Average (21-25)']++
+      } else if (score >= 26 && score <= 30) {
+        wellbeingScoreDistribution['High (26-30)']++
       }
+    })
+    
+    // Individual question breakdowns
+    const questionLabels = {
+      'happy_content': 'Happy and Content',
+      'calm_relaxed': 'Calm and Relaxed',
+      'active_vigorous': 'Active and Vigorous',
+      'fresh_rested': 'Fresh and Rested',
+      'daily_interest': 'Daily Interest and Enthusiasm'
+    }
+    
+    const responseLabels = {
+      1: 'Not at all',
+      2: 'A little',
+      3: 'Moderately',
+      4: 'Quite a bit',
+      5: 'Extremely',
+      6: 'Perfect'
+    }
+    
+    const questionBreakdowns: Record<string, Record<string, number>> = {}
+    
+    Object.entries(questionLabels).forEach(([questionKey, questionLabel]) => {
+      questionBreakdowns[questionLabel] = {
+        'Not at all': 0,
+        'A little': 0,
+        'Moderately': 0,
+        'Quite a bit': 0,
+        'Extremely': 0,
+        'Perfect': 0
+      }
+      
+      submissions.forEach(submission => {
+        if (submission.responses && submission.responses[questionKey]) {
+          const responseValue = submission.responses[questionKey]
+          const responseLabel = responseLabels[responseValue as keyof typeof responseLabels]
+          if (responseLabel) {
+            questionBreakdowns[questionLabel][responseLabel]++
+          }
+        }
+      })
     })
     
     return {
       totalResponses,
-      avgPurposeScore: Math.round(avgPurposeScore * 10) / 10,
-      purposeScoreDistribution
+      avgWellbeingScore: Math.round(avgWellbeingScore * 10) / 10,
+      wellbeingScoreDistribution,
+      questionBreakdowns,
+      previousMonthComparison
     }
   }
 }

@@ -31,13 +31,27 @@
             <h1 class="text-2xl font-bold text-gray-900">Wellbeing Index Submissions</h1>
             <p class="text-gray-600 mt-1">Manage wellbeing questionnaire responses from community members</p>
           </div>
-          <div class="flex space-x-3">
+          <div class="flex space-x-3 items-center">
+            <div class="flex space-x-2">
+              <select 
+                v-model="selectedYear" 
+                class="border border-gray-300 rounded-md px-3 py-2 text-sm"
+              >
+                <option v-for="year in availableYears" :key="year" :value="year">{{ year }}</option>
+              </select>
+              <select 
+                v-model="selectedMonth" 
+                class="border border-gray-300 rounded-md px-3 py-2 text-sm"
+              >
+                <option v-for="(month, index) in monthNames" :key="index" :value="index + 1">{{ month }}</option>
+              </select>
+            </div>
             <button
               @click="generateReport"
-              :disabled="submissions.length === 0 || generatingReport"
+              :disabled="generatingReport"
               class="bg-orange-600 text-white px-4 py-2 rounded-md hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ generatingReport ? 'Generating...' : 'Generate Report' }}
+              {{ generatingReport ? 'Generating...' : 'Download PDF Report' }}
             </button>
             <router-link
               to="/forms"
@@ -136,13 +150,13 @@
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
                       <span class="text-sm font-medium" :class="getScoreColor(submission.wellbeing_score)">
-                        {{ submission.wellbeing_score }}/120
+                        {{ submission.wellbeing_score }}/30
                       </span>
                       <div class="ml-2 w-16 bg-gray-200 rounded-full h-2">
                         <div 
                           class="h-2 rounded-full" 
                           :class="getScoreBarColor(submission.wellbeing_score)"
-                          :style="{ width: `${(submission.wellbeing_score / 120) * 100}%` }"
+                          :style="{ width: `${(submission.wellbeing_score / 30) * 100}%` }"
                         ></div>
                       </div>
                     </div>
@@ -265,24 +279,19 @@
                   <div>
                     <label class="block text-sm font-medium text-gray-700">Overall Score</label>
                     <p class="mt-1 text-sm font-medium" :class="getScoreColor(selectedSubmission.wellbeing_score)">
-                      {{ selectedSubmission.wellbeing_score }}/120 ({{ Math.round((selectedSubmission.wellbeing_score / 120) * 100) }}%)
+                      {{ selectedSubmission.wellbeing_score }}/30 ({{ Math.round((selectedSubmission.wellbeing_score / 30) * 100) }}%)
                     </p>
                   </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700">Mental Health & Emotional</label>
-                    <p class="mt-1 text-sm text-gray-900">{{ selectedSubmission.mental_health_score }}/30</p>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700">Social Connections</label>
-                    <p class="mt-1 text-sm text-gray-900">{{ selectedSubmission.social_score }}/30</p>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700">Physical Health & Self-Care</label>
-                    <p class="mt-1 text-sm text-gray-900">{{ selectedSubmission.physical_health_score }}/30</p>
-                  </div>
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700">Purpose & Achievement</label>
-                    <p class="mt-1 text-sm text-gray-900">{{ selectedSubmission.purpose_score }}/30</p>
+                  <div class="text-sm text-gray-600">
+                    <p>This is a simplified wellbeing scale with 5 questions, each scored 1-6 points.</p>
+                    <p class="mt-2">Score breakdown:</p>
+                    <ul class="mt-1 list-disc list-inside space-y-1">
+                      <li>Very Low: 5-10 points</li>
+                      <li>Low: 11-15 points</li>
+                      <li>Below Average: 16-20 points</li>
+                      <li>Average: 21-25 points</li>
+                      <li>High: 26-30 points</li>
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -355,6 +364,22 @@ const selectedSubmission = ref<WellbeingSubmission | null>(null)
 const deletingId = ref<number | null>(null)
 const generatingReport = ref(false)
 const total = ref(0)
+const selectedYear = ref(new Date().getFullYear())
+const selectedMonth = ref(new Date().getMonth() + 1)
+
+const monthNames = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+]
+
+const availableYears = computed(() => {
+  const currentYear = new Date().getFullYear()
+  const years = []
+  for (let year = currentYear - 2; year <= currentYear; year++) {
+    years.push(year)
+  }
+  return years
+})
 const pagination = ref<Pagination>({
   page: 1,
   limit: 20,
@@ -463,9 +488,8 @@ const generateReport = async () => {
   generatingReport.value = true
   
   try {
-    const currentDate = new Date()
-    const year = currentDate.getFullYear()
-    const month = currentDate.getMonth() + 1
+    const year = selectedYear.value
+    const month = selectedMonth.value
     
     const response = await fetch(`/api/wellbeing-questionnaire/report/${year}/${month}/pdf`, {
       headers: {
@@ -496,7 +520,7 @@ const generateReport = async () => {
 }
 
 const getScoreColor = (score: number) => {
-  const percentage = (score / 120) * 100
+  const percentage = (score / 30) * 100
   if (percentage >= 80) return 'text-green-600'
   if (percentage >= 60) return 'text-yellow-600'
   if (percentage >= 40) return 'text-orange-600'
@@ -504,7 +528,7 @@ const getScoreColor = (score: number) => {
 }
 
 const getScoreBarColor = (score: number) => {
-  const percentage = (score / 120) * 100
+  const percentage = (score / 30) * 100
   if (percentage >= 80) return 'bg-green-500'
   if (percentage >= 60) return 'bg-yellow-500'
   if (percentage >= 40) return 'bg-orange-500'

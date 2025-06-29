@@ -27,7 +27,7 @@
       <div class="px-4 py-6 sm:px-0">
         <div class="mb-8">
           <h1 class="text-2xl font-bold text-gray-900">Generate Reports</h1>
-          <p class="text-gray-600 mt-2">Select a form and time period to generate a PDF report</p>
+          <p class="text-gray-600 mt-2">Select a form and time period to generate a comprehensive PDF report</p>
         </div>
 
         <div class="bg-white shadow rounded-lg p-6">
@@ -122,7 +122,8 @@ const successMessage = ref('')
 // Available forms that can generate PDF reports
 const availableForms = [
   { value: 'member-registration', label: 'Member Registration' },
-  { value: 'ucla-loneliness-scale', label: 'UCLA Loneliness Scale' }
+  { value: 'ucla-loneliness-scale', label: 'UCLA Loneliness Scale' },
+  { value: 'wellbeing-questionnaire', label: 'Wellbeing Index Questionnaire' }
 ]
 
 const months = [
@@ -172,6 +173,10 @@ const generateReport = async () => {
       case 'ucla-loneliness-scale':
         endpoint = `/api/ucla-loneliness-scale/report/${selectedYear.value}/${selectedMonth.value}/pdf`
         filename = `ucla-loneliness-scale-report-${selectedYear.value}-${selectedMonth.value.toString().padStart(2, '0')}.pdf`
+        break
+      case 'wellbeing-questionnaire':
+        endpoint = `/api/wellbeing-questionnaire/report/${selectedYear.value}/${selectedMonth.value}/pdf`
+        filename = `wellbeing-report-${selectedYear.value}-${selectedMonth.value.toString().padStart(2, '0')}.pdf`
         break
       default:
         throw new Error('Please select a form to generate report for')

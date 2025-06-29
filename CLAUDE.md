@@ -547,9 +547,27 @@ function drawHorizontalBarChart(doc: PDFDocument, x: number, y: number, width: n
   - `GET /api/photo-consent/:id` (admin - view details)
   - `DELETE /api/photo-consent/:id` (admin - delete submission)
 
+### Wellbeing Index Scoring Fix ✅
+- **Issue Fixed**: Scoring calculation was incorrectly using 4 questions instead of all 5 questions
+- **Missing Question**: Added `fresh_rested` question to scoring calculation in backend model
+- **Score Range Corrected**: Updated from incorrect 4-24 range to proper 5-30 range (5 questions × 1-6 points each)
+- **Frontend Display Fixed**: Changed all score displays from `/120` to `/30` throughout the interface
+- **Progress Bars Updated**: Fixed percentage calculations to use 30-point scale instead of 120-point scale  
+- **Score Categories**: Updated distribution ranges:
+  - Very Low: 5-10 points
+  - Low: 11-15 points
+  - Below Average: 16-20 points
+  - Average: 21-25 points
+  - High: 26-30 points
+- **Database Migration**: All 108 existing submissions were recalculated with correct scoring
+- **Report Generation**: Updated monthly report functions to use proper wellbeing score calculations
+- **Verification**: Average score corrected to 18.1/30 with proper range 9-30 across all submissions
+
 ### Key Files Modified
 - `/src/server/routes/members.ts` - Added PDF report endpoint and chart functions
 - `/src/server/models/Member.ts` - Added generateMonthlyReport method
+- `/src/server/models/WellbeingIndex.ts` - Fixed scoring calculation to include all 5 questions, updated score ranges
+- `/src/client/pages/WellbeingIndexSubmissions.vue` - Updated score display from /120 to /30, fixed progress bars and color coding
 - `/src/client/assets/style.css` - Added custom purple background
 - All Vue pages in `/src/client/pages/` - Updated with purple navigation and backgrounds
 - `/src/client/pages/Forms.vue` - Added dual button system with flexbox layout
