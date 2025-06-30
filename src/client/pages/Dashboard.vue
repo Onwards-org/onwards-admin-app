@@ -6,33 +6,34 @@
       <div class="px-4 py-6 sm:px-0">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <!-- Menu Column -->
-          <div class="lg:col-span-1">
-            <div class="bg-white p-6 rounded-lg shadow">
+          <div class="lg:col-span-1 flex flex-col">
+            <div class="bg-white p-6 rounded-lg shadow flex-1 flex flex-col">
               <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-medium text-gray-900">Menu</h3>
+                <h3 class="text-xl font-medium text-gray-900">Menu</h3>
               </div>
-              <div class="grid grid-cols-2 gap-3">
+              <div class="grid grid-cols-2 grid-rows-2 gap-3 flex-1">
+                <!-- Force cache refresh -->
                 <router-link
                   to="/attendance"
-                  class="block w-full text-center px-4 py-3 text-white rounded hover:bg-purple-700 transition-colors" style="background-color: #a672b0;"
+                  class="flex items-center justify-center w-full h-full text-white rounded hover:bg-purple-700 transition-colors text-xl font-medium" style="background-color: #a672b0;"
                 >
                   Attendance
                 </router-link>
                 <router-link
-                  to="/members"
-                  class="block w-full text-center px-4 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
-                >
-                  View All Members
-                </router-link>
-                <router-link
                   to="/forms"
-                  class="block w-full text-center px-4 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
+                  class="flex items-center justify-center w-full h-full border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors text-xl font-medium"
                 >
                   Onwards Forms
                 </router-link>
                 <router-link
+                  to="/members"
+                  class="flex items-center justify-center w-full h-full border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors text-xl font-medium"
+                >
+                  View All Members
+                </router-link>
+                <router-link
                   to="/reports"
-                  class="block w-full text-center px-4 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors"
+                  class="flex items-center justify-center w-full h-full border border-gray-300 text-gray-700 rounded hover:bg-gray-50 transition-colors text-xl font-medium"
                 >
                   Generate Reports
                 </router-link>
@@ -41,8 +42,8 @@
           </div>
 
           <!-- Stats Cards Column -->
-          <div class="lg:col-span-1">
-            <div class="space-y-6">
+          <div class="lg:col-span-1 flex flex-col">
+            <div class="space-y-6 flex-1">
               <div class="bg-white p-6 rounded-lg shadow">
                 <div class="flex items-center">
                   <div class="p-3 rounded-full bg-onwards-blue bg-opacity-10">

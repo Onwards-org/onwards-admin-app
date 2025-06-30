@@ -37,7 +37,8 @@
       "Bash(npm run typecheck:*)",
       "Bash(npm run lint:*)",
       "Bash(psql:*)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(fuser:*)"
     ],
     "deny": []
   }
