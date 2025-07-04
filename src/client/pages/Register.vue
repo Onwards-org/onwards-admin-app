@@ -458,23 +458,59 @@
           <div class="space-y-6">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">Medical Conditions (Optional)</label>
-              <p class="text-sm text-gray-600 mb-3">Select all that apply</p>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                <label
-                  v-for="condition in medicalConditionsOptions"
-                  :key="condition"
-                  class="flex items-center"
-                >
-                  <input
-                    v-model="form.medical_conditions"
-                    type="checkbox"
-                    :value="condition"
-                    class="rounded border-gray-300 text-onwards-blue focus:ring-onwards-blue"
-                  />
-                  <span class="ml-2 text-sm text-gray-700">{{ condition }}</span>
-                </label>
+              <p class="text-sm text-gray-600 mb-3">Type to search and add conditions. You can add multiple conditions. If your condition isn't listed, select 'Other' to enter any condition you want.</p>
+              
+              <!-- Selected conditions display -->
+              <div v-if="form.medical_conditions.length > 0" class="mb-3">
+                <div class="flex flex-wrap gap-2">
+                  <span
+                    v-for="(condition, index) in form.medical_conditions"
+                    :key="index"
+                    class="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+                  >
+                    {{ condition }}
+                    <button
+                      @click="removeCondition(index)"
+                      type="button"
+                      class="ml-2 text-blue-600 hover:text-blue-800"
+                    >
+                      ×
+                    </button>
+                  </span>
+                </div>
               </div>
-              <div v-if="form.medical_conditions.includes('Other')" class="mt-3">
+
+              <!-- Search input with dropdown -->
+              <div class="relative">
+                <input
+                  v-model="medicalConditionSearch"
+                  @input="filterMedicalConditions"
+                  @focus="showMedicalDropdown = true"
+                  @blur="hideMedicalDropdown"
+                  type="text"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-onwards-blue focus:border-onwards-blue"
+                  placeholder="Type to search conditions (e.g., Autism, ADHD, Anxiety...)"
+                />
+                
+                <!-- Dropdown with filtered options -->
+                <div
+                  v-if="showMedicalDropdown && filteredMedicalConditions.length > 0"
+                  class="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-48 overflow-y-auto"
+                >
+                  <button
+                    v-for="condition in filteredMedicalConditions"
+                    :key="condition"
+                    @mousedown="addMedicalCondition(condition)"
+                    type="button"
+                    class="w-full px-3 py-2 text-left hover:bg-gray-100 focus:bg-gray-100 focus:outline-none"
+                  >
+                    {{ condition }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- Other condition input -->
+              <div v-if="hasOtherCondition" class="mt-3">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Please specify other medical condition:</label>
                 <input
                   v-model="form.medical_conditions_other"
@@ -601,7 +637,10 @@
                 <p class="font-medium">Medical Conditions:</p>
                 <p v-if="form.medical_conditions.length === 0" class="text-gray-600">None selected</p>
                 <ul v-else class="list-disc list-inside text-sm">
-                  <li v-for="condition in form.medical_conditions" :key="condition">{{ condition }}</li>
+                  <li v-for="condition in form.medical_conditions" :key="condition">
+                    {{ condition }}
+                    <span v-if="condition === 'Other' && form.medical_conditions_other" class="text-gray-600"> - {{ form.medical_conditions_other }}</span>
+                  </li>
                 </ul>
               </div>
               <div v-if="form.challenging_behaviours.length > 0" class="mb-3">
@@ -622,7 +661,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import FormCard from '@/components/FormCard.vue'
 import AddressInput from '@/components/AddressInput.vue'
@@ -678,6 +717,59 @@ const form = ref({
 })
 
 const errors = ref<Record<string, string>>({})
+
+// Medical conditions predictive text
+const medicalConditionSearch = ref('')
+const showMedicalDropdown = ref(false)
+const filteredMedicalConditions = ref<string[]>([])
+
+const filterMedicalConditions = () => {
+  const search = medicalConditionSearch.value.toLowerCase().trim()
+  if (search.length === 0) {
+    filteredMedicalConditions.value = medicalConditionsOptions.slice()
+    return
+  }
+  
+  filteredMedicalConditions.value = medicalConditionsOptions.filter(condition => 
+    condition.toLowerCase().includes(search) && 
+    !form.value.medical_conditions.includes(condition)
+  )
+}
+
+const addMedicalCondition = (condition: string) => {
+  if (!form.value.medical_conditions.includes(condition)) {
+    form.value.medical_conditions.push(condition)
+  }
+  medicalConditionSearch.value = ''
+  showMedicalDropdown.value = false
+  filteredMedicalConditions.value = []
+}
+
+const removeCondition = (index: number) => {
+  const removedCondition = form.value.medical_conditions[index]
+  form.value.medical_conditions.splice(index, 1)
+  
+  // Clear the other text if "Other" was removed
+  if (removedCondition === 'Other') {
+    form.value.medical_conditions_other = ''
+  }
+}
+
+const hideMedicalDropdown = () => {
+  setTimeout(() => {
+    showMedicalDropdown.value = false
+  }, 200) // Delay to allow click events to process
+}
+
+// Check if "Other" is selected to show text input
+const hasOtherCondition = computed(() => {
+  return form.value.medical_conditions.includes('Other')
+})
+
+// Initialize filtered conditions on component mount
+onMounted(() => {
+  filteredMedicalConditions.value = medicalConditionsOptions.slice()
+})
 
 const months = [
   { value: 1, label: 'January' },

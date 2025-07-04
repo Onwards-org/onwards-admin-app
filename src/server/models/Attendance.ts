@@ -67,6 +67,16 @@ export class AttendanceModel {
   
   static async getMembersForDate(date: Date): Promise<{ id: number; name: string; present: boolean }[]> {
     const pool = getPool()
+    
+    // Check if session is cancelled first
+    const sessionQuery = 'SELECT status FROM sessions WHERE date = $1'
+    const sessionResult = await pool.query(sessionQuery, [date])
+    
+    // If session is cancelled, return empty array (no attendance records)
+    if (sessionResult.rows.length > 0 && sessionResult.rows[0].status === 'cancelled') {
+      return []
+    }
+    
     const query = `
       SELECT 
         m.id,
@@ -74,17 +84,35 @@ export class AttendanceModel {
         COALESCE(a.present, false) as present
       FROM members m
       LEFT JOIN attendance a ON m.id = a.member_id AND a.date = $1
-      ORDER BY m.name
+      ORDER BY 
+        UPPER(
+          CASE 
+            WHEN m.name LIKE '%(%' THEN 
+              -- Handle names like "Naseem (naz) koser" - extract surname after parentheses
+              TRIM(SUBSTRING(m.name FROM POSITION(')' IN m.name) + 1))
+            WHEN m.name LIKE '% %' THEN 
+              -- Handle regular "First Last" names - get last word after last space
+              TRIM(SUBSTRING(m.name FROM '[^ ]*$'))
+            ELSE m.name
+          END
+        )
     `
     
     const result = await pool.query(query, [date])
     return result.rows
   }
   
+  static async deleteByDate(date: Date): Promise<void> {
+    const pool = getPool()
+    const query = 'DELETE FROM attendance WHERE date = $1'
+    await pool.query(query, [date])
+  }
+  
   static async generateMonthlyReport(month: number, year: number): Promise<AttendanceReport> {
     const pool = getPool()
-    const startDate = new Date(year, month - 1, 1)
-    const endDate = new Date(year, month, 0)
+    // Use UTC dates to avoid timezone issues
+    const startDate = new Date(Date.UTC(year, month - 1, 1))
+    const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999))
     
     const query = `
       SELECT DISTINCT
@@ -105,81 +133,75 @@ export class AttendanceModel {
     const result = await pool.query(query, [startDate, endDate])
     const data = result.rows
     
-    // Postcode to location mapping for West Midlands area
+    // Helper function to get detailed geographical location from postcode
     const getLocationFromPostcode = (postcode: string): string => {
       if (!postcode) return 'Unknown'
       
       const postcodeUpper = postcode.toUpperCase()
       
-      // Walsall postcodes
-      if (postcodeUpper.startsWith('WS1') || postcodeUpper.startsWith('WS2') || 
-          postcodeUpper.startsWith('WS3') || postcodeUpper.startsWith('WS4') || 
-          postcodeUpper.startsWith('WS5') || postcodeUpper.startsWith('WS6') ||
-          postcodeUpper.startsWith('WS7') || postcodeUpper.startsWith('WS8') ||
-          postcodeUpper.startsWith('WS9') || postcodeUpper.startsWith('WS10') ||
-          postcodeUpper.startsWith('WS11') || postcodeUpper.startsWith('WS12') ||
-          postcodeUpper.startsWith('WS13') || postcodeUpper.startsWith('WS14') ||
-          postcodeUpper.startsWith('WS15')) {
-        return 'Walsall'
-      }
-      
-      // Streetly (part of Sutton Coldfield)
-      if (postcodeUpper.startsWith('B74') && (postcodeUpper.includes('1') || postcodeUpper.includes('2') || postcodeUpper.includes('3'))) {
-        return 'Streetly'
-      }
-      
-      // Sutton Coldfield
-      if (postcodeUpper.startsWith('B72') || postcodeUpper.startsWith('B73') || 
-          postcodeUpper.startsWith('B74') || postcodeUpper.startsWith('B75') || 
-          postcodeUpper.startsWith('B76')) {
+      // Detailed location mapping
+      // Sutton Coldfield - B7x postcodes
+      if (postcodeUpper.startsWith('B7')) {
         return 'Sutton Coldfield'
       }
       
-      // Kingstanding
-      if (postcodeUpper.startsWith('B44') || 
-          (postcodeUpper.startsWith('B43') && postcodeUpper.includes('6'))) {
-        return 'Kingstanding'
+      // Walsall area - WS postcodes
+      if (postcodeUpper.startsWith('WS')) {
+        return 'Walsall'
       }
       
-      // Erdington
-      if (postcodeUpper.startsWith('B23') || postcodeUpper.startsWith('B24')) {
-        return 'Erdington'
+      // Tamworth - B7x area (some overlap with Sutton Coldfield)
+      if (postcodeUpper.startsWith('B77') || postcodeUpper.startsWith('B78') || postcodeUpper.startsWith('B79')) {
+        return 'Tamworth'
       }
       
-      // Boldmere
-      if (postcodeUpper.startsWith('B73') && (postcodeUpper.includes('5') || postcodeUpper.includes('6'))) {
-        return 'Boldmere'
+      // West Bromwich - B70, B71 postcodes
+      if (postcodeUpper.startsWith('B70') || postcodeUpper.startsWith('B71')) {
+        return 'West Bromwich'
       }
       
-      // Great Barr
-      if (postcodeUpper.startsWith('B43') || postcodeUpper.startsWith('B42')) {
-        return 'Great Barr'
+      // Lichfield - WS13-WS15 postcodes
+      if (postcodeUpper.startsWith('WS13') || postcodeUpper.startsWith('WS14') || postcodeUpper.startsWith('WS15')) {
+        return 'Lichfield'
       }
       
-      // Handsworth
-      if (postcodeUpper.startsWith('B20') || postcodeUpper.startsWith('B21')) {
-        return 'Handsworth'
+      // Smethwick - B66, B67 postcodes
+      if (postcodeUpper.startsWith('B66') || postcodeUpper.startsWith('B67')) {
+        return 'Smethwick'
       }
       
-      // Birmingham City Centre
-      if (postcodeUpper.startsWith('B1') || postcodeUpper.startsWith('B2') || 
-          postcodeUpper.startsWith('B3') || postcodeUpper.startsWith('B4') || 
-          postcodeUpper.startsWith('B5')) {
-        return 'Birmingham City Centre'
+      // Shelfield - WS4 postcodes
+      if (postcodeUpper.startsWith('WS4')) {
+        return 'Shelfield'
+      }
+      
+      // Wolverhampton - WV postcodes
+      if (postcodeUpper.startsWith('WV')) {
+        return 'Wolverhampton'
+      }
+      
+      // Cradley Heath - B64 postcodes
+      if (postcodeUpper.startsWith('B64')) {
+        return 'Cradley Heath'
+      }
+      
+      // Streetly - B74 postcodes
+      if (postcodeUpper.startsWith('B74')) {
+        return 'Streetly'
       }
       
       // Other Birmingham areas
       if (postcodeUpper.startsWith('B')) {
-        return 'Birmingham (Other)'
+        return 'Other Birmingham'
       }
       
-      // Tamworth
-      if (postcodeUpper.startsWith('B77') || postcodeUpper.startsWith('B78') || 
-          postcodeUpper.startsWith('B79')) {
-        return 'Tamworth'
+      // Other West Midlands areas
+      if (postcodeUpper.startsWith('CV') || postcodeUpper.startsWith('DY') || 
+          postcodeUpper.startsWith('WR') || postcodeUpper.startsWith('ST')) {
+        return 'Other West Midlands'
       }
       
-      return 'Other'
+      return 'Other Areas'
     }
 
     const currentYear = new Date().getFullYear()
@@ -229,7 +251,15 @@ export class AttendanceModel {
       
       if (row.medical_conditions) {
         row.medical_conditions.forEach((condition: string) => {
-          stats.disabilities[condition] = (stats.disabilities[condition] || 0) + 1
+          if (condition) {
+            // Handle "Other:" conditions
+            if (condition.startsWith('Other:')) {
+              stats.disabilities['Other'] = (stats.disabilities['Other'] || 0) + 1
+            } else {
+              // Preserve the full condition name including diagnosis status
+              stats.disabilities[condition] = (stats.disabilities[condition] || 0) + 1
+            }
+          }
         })
       }
     })

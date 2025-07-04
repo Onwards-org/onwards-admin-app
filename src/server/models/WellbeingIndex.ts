@@ -249,24 +249,24 @@ export class WellbeingIndexModel {
     }
     
     const responseLabels = {
-      1: 'Not at all',
-      2: 'A little',
-      3: 'Moderately',
-      4: 'Quite a bit',
-      5: 'Extremely',
-      6: 'Perfect'
+      1: 'None of the time',
+      2: 'Some of the time',
+      3: 'Less than half of the time',
+      4: 'More than half of the time',
+      5: 'Most of the time',
+      6: 'All of the time'
     }
     
     const questionBreakdowns: Record<string, Record<string, number>> = {}
     
     Object.entries(questionLabels).forEach(([questionKey, questionLabel]) => {
       questionBreakdowns[questionLabel] = {
-        'Not at all': 0,
-        'A little': 0,
-        'Moderately': 0,
-        'Quite a bit': 0,
-        'Extremely': 0,
-        'Perfect': 0
+        'None of the time': 0,
+        'Some of the time': 0,
+        'Less than half of the time': 0,
+        'More than half of the time': 0,
+        'Most of the time': 0,
+        'All of the time': 0
       }
       
       submissions.forEach(submission => {

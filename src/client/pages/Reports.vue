@@ -35,7 +35,7 @@
             <!-- Form Selection -->
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-3">
-                Select Form to Report On <span class="text-red-500">*</span>
+                Select report to create <span class="text-red-500">*</span>
               </label>
               <select
                 v-model="selectedForm"
@@ -121,7 +121,7 @@ const successMessage = ref('')
 
 // Available forms that can generate PDF reports
 const availableForms = [
-  { value: 'member-registration', label: 'Member Registration' },
+  { value: 'member-registration', label: 'Demographic Data' },
   { value: 'ucla-loneliness-scale', label: 'UCLA Loneliness Scale' },
   { value: 'wellbeing-questionnaire', label: 'Wellbeing Index Questionnaire' }
 ]
@@ -167,7 +167,7 @@ const generateReport = async () => {
     // Determine API endpoint based on selected form
     switch (selectedForm.value) {
       case 'member-registration':
-        endpoint = `/api/members/report/${selectedYear.value}/${selectedMonth.value}/pdf`
+        endpoint = `/api/attendance/report/${selectedYear.value}/${selectedMonth.value}/pdf`
         filename = `member-registration-report-${selectedYear.value}-${selectedMonth.value.toString().padStart(2, '0')}.pdf`
         break
       case 'ucla-loneliness-scale':

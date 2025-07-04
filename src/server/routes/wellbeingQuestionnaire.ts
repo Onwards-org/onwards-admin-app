@@ -225,7 +225,7 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
       drawPieChart(doc, 300, yPos + 80, 80, reportData.wellbeingScoreDistribution, '')
     }
     
-    // PAGES 3-7: PIE CHARTS FOR EACH QUESTION
+    // PAGES 3-7: PIE CHARTS FOR QUESTIONS 1-5
     const questionLabels = [
       'Happy and Content',
       'Calm and Relaxed', 
@@ -248,36 +248,35 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
          .text('Response Distribution', 50, 90)
       
       // Draw pie chart for this question
-      if (reportData.questionBreakdowns[questionLabel]) {
-        const questionData = reportData.questionBreakdowns[questionLabel]
-        const hasData = Object.values(questionData).some(v => v > 0)
+      const questionData = reportData.questionBreakdowns[questionLabel]
+      
+      if (questionData && Object.values(questionData).some(v => v > 0)) {
+        // Has data - draw chart
+        drawPieChart(doc, 300, 250, 120, questionData, '')
         
-        if (hasData) {
-          drawPieChart(doc, 300, 250, 120, questionData, '')
-          
-          // Add summary stats
-          const total = Object.values(questionData).reduce((sum, val) => sum + val, 0)
-          const avgScore = Object.entries(questionData).reduce((sum, [label, count]) => {
-            const scoreMap: Record<string, number> = {
-              'Not at all': 1,
-              'A little': 2,
-              'Moderately': 3,
-              'Quite a bit': 4,
-              'Extremely': 5,
-              'Perfect': 6
-            }
-            return sum + (scoreMap[label] * count)
-          }, 0) / total
-          
-          doc.fontSize(14)
-             .fillColor('#333')
-             .text(`Average Score: ${avgScore.toFixed(1)}/6`, 50, 500)
-             .text(`Total Responses: ${total}`, 50, 525)
-        } else {
-          doc.fontSize(12)
-             .fillColor('#666')
-             .text('No data available for this question', 50, 200)
-        }
+        // Add summary stats
+        const total = Object.values(questionData).reduce((sum, val) => sum + val, 0)
+        const avgScore = Object.entries(questionData).reduce((sum, [label, count]) => {
+          const scoreMap: Record<string, number> = {
+            'None of the time': 1,
+            'Some of the time': 2,
+            'Less than half of the time': 3,
+            'More than half of the time': 4,
+            'Most of the time': 5,
+            'All of the time': 6
+          }
+          return sum + (scoreMap[label] * count)
+        }, 0) / total
+        
+        doc.fontSize(14)
+           .fillColor('#333')
+           .text(`Average Score: ${avgScore.toFixed(1)}/6`, 50, 500)
+           .text(`Total Responses: ${total}`, 50, 525)
+      } else {
+        // No data - show message
+        doc.fontSize(12)
+           .fillColor('#666')
+           .text(questionData ? 'No responses for this question yet' : 'Question data not found in report', 50, 200)
       }
     })
     

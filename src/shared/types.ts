@@ -56,6 +56,17 @@ export interface Attendance {
   present: boolean
 }
 
+export interface Session {
+  id: number
+  date: Date
+  status: 'scheduled' | 'held' | 'cancelled'
+  cancellation_reason?: string
+  cancelled_by?: string
+  cancelled_at?: Date
+  created_at: Date
+  updated_at: Date
+}
+
 export interface AttendanceReport {
   month: number
   year: number
@@ -149,17 +160,19 @@ export const PREGNANCY_OPTIONS = [
 ] as const
 
 export const MEDICAL_CONDITIONS_OPTIONS = [
-  'Autism Spectrum Disorder',
-  'ADHD',
-  'Anxiety disorders',
-  'Depression',
-  'Bipolar disorder',
+  'Autism (diagnosed, self diagnosed, awaiting diagnosis)',
+  'ADHD (diagnosed, self diagnosed, awaiting diagnosis)',
+  'Anxiety (diagnosed, self diagnosed, awaiting diagnosis)',
+  'Chronic Illness',
   'OCD',
+  'Learning Disabilities',
+  'Selective Mutism',
   'PTSD',
-  'Learning disability',
-  'Physical disability',
-  'Sensory impairment',
-  'Chronic illness',
+  'Depression',
+  'BPD (Borderline Personality Disorder)',
+  'Bipolar Disorder',
+  'Schizophrenia',
+  'Hearing/Visual Impairment',
   'Other'
 ] as const
 

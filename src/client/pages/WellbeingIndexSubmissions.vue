@@ -305,8 +305,11 @@
               <!-- Response Details -->
               <div class="mt-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Detailed Responses</label>
-                <div class="bg-gray-50 p-4 rounded max-h-64 overflow-y-auto">
-                  <pre class="text-xs text-gray-700 whitespace-pre-wrap">{{ JSON.stringify(selectedSubmission.responses, null, 2) }}</pre>
+                <div class="bg-gray-50 p-4 rounded space-y-3">
+                  <div v-for="(value, key) in selectedSubmission.responses" :key="key" class="flex justify-between items-center">
+                    <span class="text-sm text-gray-700 font-medium">{{ getQuestionText(key) }}:</span>
+                    <span class="text-sm text-gray-900">{{ getResponseLabel(value) }}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -537,6 +540,31 @@ const getScoreBarColor = (score: number) => {
 
 const formatDateTime = (dateString: string) => {
   return new Date(dateString).toLocaleString('en-GB')
+}
+
+// Map response values to time-based labels
+const getResponseLabel = (value: number): string => {
+  const labels = {
+    1: 'None of the time',
+    2: 'Some of the time', 
+    3: 'Less than half of the time',
+    4: 'More than half of the time',
+    5: 'Most of the time',
+    6: 'All of the time'
+  }
+  return labels[value as keyof typeof labels] || `Unknown (${value})`
+}
+
+// Map question keys to readable text
+const getQuestionText = (key: string): string => {
+  const questions = {
+    'happy_content': 'I have felt happy and content',
+    'calm_relaxed': 'I have felt calm and relaxed',
+    'active_vigorous': 'I have felt active and vigorous',
+    'daily_interest': 'My daily life has been filled with things that interest me',
+    'fresh_rested': 'I woke up feeling fresh and rested'
+  }
+  return questions[key as keyof typeof questions] || key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
 }
 
 onMounted(() => {

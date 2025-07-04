@@ -40,6 +40,7 @@ const MemberSchema = v.object({
     phone: v.string([v.regex(/^(\+44|0)[1-9]\d{8,9}$/)])
   })),
   medical_conditions: v.optional(v.array(v.picklist(MEDICAL_CONDITIONS_OPTIONS as any))),
+  medical_conditions_other: v.optional(v.string()),
   challenging_behaviours: v.optional(v.array(v.picklist(CHALLENGING_BEHAVIOURS_OPTIONS as any)))
 })
 
@@ -55,6 +56,7 @@ router.post('/register', async (req, res) => {
     const {
       emergency_contacts,
       medical_conditions,
+      medical_conditions_other,
       challenging_behaviours,
       ...memberData
     } = data
@@ -67,7 +69,12 @@ router.post('/register', async (req, res) => {
     
     if (medical_conditions) {
       for (const condition of medical_conditions) {
-        await MemberModel.addMedicalCondition(member.id, condition)
+        if (condition === 'Other' && medical_conditions_other?.trim()) {
+          // Store the specific text provided by the user, but it will be categorized as "Other" in reports
+          await MemberModel.addMedicalCondition(member.id, `Other: ${medical_conditions_other.trim()}`)
+        } else {
+          await MemberModel.addMedicalCondition(member.id, condition)
+        }
       }
     }
     
@@ -318,11 +325,11 @@ function drawHorizontalBarChart(doc: PDFDocument, x: number, y: number, width: n
     return
   }
   
-  const barHeight = Math.min(40, (height - 40) / entries.length)
-  const barSpacing = 5
+  const barHeight = Math.min(35, (height - 40) / entries.length)
+  const barSpacing = 3
   const totalChartHeight = entries.length * barHeight + (entries.length - 1) * barSpacing
   const startY = y + (height - totalChartHeight) / 2 // Center vertically
-  const labelWidth = 180
+  const labelWidth = 220 // Increased for longer medical condition names
   const maxBarWidth = width - labelWidth - 50 // Leave space for labels and values
   const barStartX = x + labelWidth
   
@@ -333,9 +340,23 @@ function drawHorizontalBarChart(doc: PDFDocument, x: number, y: number, width: n
     const color = colors[index % colors.length]
     doc.rect(barStartX, barY, barWidth, barHeight - 2).fillColor(color).fill()
     
-    // Label on left (truncated if too long)
-    const shortLabel = label.length > 22 ? label.substring(0, 22) + '...' : label
-    doc.fillColor('black').fontSize(8).text(shortLabel, x, barY + barHeight / 2 - 4, { width: labelWidth - 10, align: 'right' })
+    // Enhanced label handling for medical conditions with diagnosis status
+    let displayLabel = label
+    if (label.includes('(') && label.includes(')')) {
+      // For conditions like "ADHD (diagnosed)", split into two lines
+      const parts = label.split('(')
+      const condition = parts[0].trim()
+      const status = '(' + parts[1]
+      
+      // Use smaller font and two lines for detailed conditions
+      doc.fillColor('black').fontSize(7)
+        .text(condition, x, barY + barHeight / 2 - 8, { width: labelWidth - 10, align: 'right' })
+        .text(status, x, barY + barHeight / 2 + 1, { width: labelWidth - 10, align: 'right' })
+    } else {
+      // Standard single-line label (truncated if too long)
+      const shortLabel = label.length > 28 ? label.substring(0, 28) + '...' : label
+      doc.fillColor('black').fontSize(8).text(shortLabel, x, barY + barHeight / 2 - 4, { width: labelWidth - 10, align: 'right' })
+    }
     
     // Value on right of bar
     doc.fontSize(9).text(value.toString(), barStartX + barWidth + 5, barY + barHeight / 2 - 4)
@@ -399,7 +420,7 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
     // Disclaimer (bottom of page, centered)
     doc.fontSize(10)
        .fillColor('#666666')
-       .text('This report contains demographic data for members registered during the specified period.', 50, 450, { width: doc.page.width - 100, align: 'center' })
+       .text('This report contains demographic data for members who attended at least once during the specified period.', 50, 450, { width: doc.page.width - 100, align: 'center' })
        .text('Data is collected to support funding applications and improve services.', 50, 470, { width: doc.page.width - 100, align: 'center' })
        .text('All personal information is handled in accordance with GDPR and our privacy policy.', 50, 490, { width: doc.page.width - 100, align: 'center' })
     
@@ -409,7 +430,7 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
       doc.rect(0, 0, doc.page.width, doc.page.height).fillColor('#eecbf5').fill()
       doc.rect(0, 0, doc.page.width, 60).fillColor('#a672b0').fill()
       doc.fillColor('white').fontSize(18).font('Helvetica-Bold').text('No Data Available', 0, 20, { width: doc.page.width, align: 'center' })
-      doc.fillColor('black').fontSize(14).text(`No members were registered in ${monthNames[monthNum - 1]} ${yearNum}.`, 0, 200, { width: doc.page.width, align: 'center' })
+      doc.fillColor('black').fontSize(14).text(`No members attended in ${monthNames[monthNum - 1]} ${yearNum}.`, 0, 200, { width: doc.page.width, align: 'center' })
     } else {
       // Page 2: Gender Distribution
       doc.addPage()

@@ -38,7 +38,20 @@
       "Bash(npm run lint:*)",
       "Bash(psql:*)",
       "Bash(touch:*)",
-      "Bash(fuser:*)"
+      "Bash(fuser:*)",
+      "Bash(npx tsx:*)",
+      "Bash(sed:*)",
+      "Bash(mv:*)",
+      "Bash(find:*)",
+      "Bash(cut:*)",
+      "Bash(ip route:*)",
+      "Bash(hostname:*)",
+      "Bash(rg:*)",
+      "Bash(jobs)",
+      "Bash(npm run build:*)",
+      "Bash(sudo service:*)",
+      "Bash(TZ=UTC date '+%Y-%m-%d')",
+      "Bash(echo)"
     ],
     "deny": []
   }

@@ -40,6 +40,28 @@ export class UCLALonelinessScaleModel {
     return result.rows[0]
   }
 
+  static async submitWithDate(submission: UCLASubmission & { submission_date: Date }): Promise<UCLASubmission> {
+    const pool = getPool()
+    
+    const query = `
+      INSERT INTO ucla_loneliness_scale (
+        name, isolated_response, left_out_response, lack_companionship_response, submission_date
+      ) VALUES ($1, $2, $3, $4, $5)
+      RETURNING *
+    `
+    
+    const values = [
+      submission.name,
+      submission.isolated_response,
+      submission.left_out_response,
+      submission.lack_companionship_response,
+      submission.submission_date
+    ]
+    
+    const result = await pool.query(query, values)
+    return result.rows[0]
+  }
+
   static async getSubmissions(startDate?: Date, endDate?: Date): Promise<UCLASubmission[]> {
     const pool = getPool()
     

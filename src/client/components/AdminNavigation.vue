@@ -1,12 +1,12 @@
 <template>
-  <nav class="shadow" style="background-color: #a672b0;">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <nav class="shadow w-full block" style="background-color: #a672b0;">
+    <div class="w-full px-1 sm:px-2 md:px-4 lg:px-6">
       <div class="flex justify-between h-16">
-        <div class="flex items-center space-x-8">
-          <router-link to="/dashboard" class="text-xl font-semibold text-white">
+        <div class="flex items-center space-x-2 md:space-x-4 lg:space-x-8">
+          <router-link to="/dashboard" class="text-sm md:text-lg lg:text-xl font-semibold text-white whitespace-nowrap">
             Onwards Admin
           </router-link>
-          <nav class="flex space-x-8">
+          <nav class="hidden md:flex space-x-2 md:space-x-4 lg:space-x-6">
             <router-link 
               to="/dashboard" 
               class="text-purple-200 hover:text-white"
@@ -51,22 +51,28 @@
             </router-link>
           </nav>
         </div>
-        <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-1 sm:space-x-2 md:space-x-4">
+          <!-- Mobile menu button -->
+          <button class="md:hidden text-white p-1" @click="showMobileMenu = !showMobileMenu">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
           <div class="relative" ref="profileDropdown">
             <button
               @click="showProfileDropdown = !showProfileDropdown"
-              class="flex items-center space-x-3 hover:bg-white/10 rounded-lg px-3 py-2 transition-colors"
+              class="flex items-center space-x-1 sm:space-x-2 md:space-x-3 hover:bg-white/10 rounded-lg px-1 sm:px-2 md:px-3 py-1 md:py-2 transition-colors"
             >
               <img 
                 :src="profilePictureUrl" 
                 :alt="`${authStore.user?.username}'s profile picture`"
                 :key="authStore.user?.profile_picture || 'default'"
-                class="w-8 h-8 rounded-full object-cover border-2 border-white/20"
+                class="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full object-cover border-2 border-white/20"
                 @error="handleImageError"
               />
-              <span class="text-sm text-white">{{ authStore.user?.username }}</span>
+              <span class="text-xs sm:text-sm text-white hidden sm:block">{{ authStore.user?.username }}</span>
               <svg 
-                class="w-4 h-4 text-white/70 transition-transform"
+                class="w-3 h-3 sm:w-4 sm:h-4 text-white/70 transition-transform hidden sm:block"
                 :class="{ 'rotate-180': showProfileDropdown }"
                 fill="none" 
                 stroke="currentColor" 
@@ -129,6 +135,60 @@
         </div>
       </div>
     </div>
+    
+    <!-- Mobile menu -->
+    <div v-if="showMobileMenu" class="md:hidden bg-purple-700 border-t border-purple-600">
+      <div class="px-2 pt-2 pb-3 space-y-1">
+        <router-link 
+          to="/dashboard" 
+          @click="showMobileMenu = false"
+          class="block px-3 py-2 text-purple-200 hover:text-white rounded-md"
+          :class="{ 'text-white bg-purple-800': $route.path === '/dashboard' }"
+        >
+          Dashboard
+        </router-link>
+        <router-link 
+          to="/members" 
+          @click="showMobileMenu = false"
+          class="block px-3 py-2 text-purple-200 hover:text-white rounded-md"
+          :class="{ 'text-white bg-purple-800': $route.path.startsWith('/members') }"
+        >
+          Members
+        </router-link>
+        <router-link 
+          to="/attendance" 
+          @click="showMobileMenu = false"
+          class="block px-3 py-2 text-purple-200 hover:text-white rounded-md"
+          :class="{ 'text-white bg-purple-800': $route.path === '/attendance' }"
+        >
+          Attendance
+        </router-link>
+        <router-link 
+          to="/reports" 
+          @click="showMobileMenu = false"
+          class="block px-3 py-2 text-purple-200 hover:text-white rounded-md"
+          :class="{ 'text-white bg-purple-800': $route.path === '/reports' }"
+        >
+          Reports
+        </router-link>
+        <router-link 
+          to="/forms" 
+          @click="showMobileMenu = false"
+          class="block px-3 py-2 text-purple-200 hover:text-white rounded-md"
+          :class="{ 'text-white bg-purple-800': $route.path.startsWith('/forms') }"
+        >
+          Forms
+        </router-link>
+        <router-link 
+          to="/admin" 
+          @click="showMobileMenu = false"
+          class="block px-3 py-2 text-purple-200 hover:text-white rounded-md"
+          :class="{ 'text-white bg-purple-800': $route.path === '/admin' }"
+        >
+          Admin
+        </router-link>
+      </div>
+    </div>
   </nav>
 </template>
 
@@ -143,6 +203,7 @@ const authStore = useAuthStore()
 
 const imageError = ref(false)
 const showProfileDropdown = ref(false)
+const showMobileMenu = ref(false)
 const profileDropdown = ref<HTMLElement | null>(null)
 
 const profilePictureUrl = computed(() => {

@@ -37,6 +37,17 @@
               Back to Members
             </router-link>
           </div>
+          <div v-if="member" class="flex items-center space-x-3">
+            <button
+              @click="showDeleteConfirm = true"
+              class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
+            >
+              <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+              Delete Member
+            </button>
+          </div>
         </div>
 
         <div v-if="loading" class="bg-white shadow rounded-lg p-6 text-center">
@@ -148,6 +159,41 @@
             <p class="text-gray-600 bg-gray-50 p-3 rounded">{{ member.hobbies_interests }}</p>
           </div>
         </div>
+
+        <!-- Delete Confirmation Modal -->
+        <div v-if="showDeleteConfirm" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="showDeleteConfirm = false">
+          <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" @click.stop>
+            <div class="mt-3 text-center">
+              <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+              </div>
+              <h3 class="text-lg font-medium text-gray-900 mt-4">Delete Member</h3>
+              <div class="mt-2 px-7 py-3">
+                <p class="text-sm text-gray-500">
+                  Are you sure you want to delete <strong>{{ member?.name }}</strong>? 
+                  This action cannot be undone and will remove all associated data including attendance records.
+                </p>
+              </div>
+              <div class="flex justify-center space-x-3 mt-4">
+                <button
+                  @click="showDeleteConfirm = false"
+                  class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 text-sm font-medium rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  @click="deleteMember"
+                  :disabled="deleting"
+                  class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-md disabled:opacity-50"
+                >
+                  {{ deleting ? 'Deleting...' : 'Delete' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -168,6 +214,8 @@ const medicalConditions = ref<any[]>([])
 const challengingBehaviours = ref<any[]>([])
 const loading = ref(false)
 const error = ref('')
+const showDeleteConfirm = ref(false)
+const deleting = ref(false)
 
 const logout = () => {
   authStore.logout()
@@ -224,6 +272,31 @@ const loadMember = async () => {
     error.value = err instanceof Error ? err.message : 'Failed to load member'
   } finally {
     loading.value = false
+  }
+}
+
+const deleteMember = async () => {
+  if (!member.value) return
+  
+  deleting.value = true
+  
+  try {
+    const response = await fetch(`/api/members/${member.value.id}`, {
+      method: 'DELETE',
+      headers: authStore.getAuthHeaders()
+    })
+    
+    if (!response.ok) {
+      throw new Error('Failed to delete member')
+    }
+    
+    // Successfully deleted, redirect to members list
+    router.push('/members')
+  } catch (err) {
+    error.value = err instanceof Error ? err.message : 'Failed to delete member'
+    showDeleteConfirm.value = false
+  } finally {
+    deleting.value = false
   }
 }
 

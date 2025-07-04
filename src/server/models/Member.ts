@@ -187,8 +187,9 @@ export class MemberModel {
   
   static async generateMonthlyReport(month: number, year: number): Promise<MemberReport> {
     const pool = getPool()
-    const startDate = new Date(year, month - 1, 1)
-    const endDate = new Date(year, month, 0)
+    // Use UTC dates to avoid timezone issues
+    const startDate = new Date(Date.UTC(year, month - 1, 1))
+    const endDate = new Date(Date.UTC(year, month, 0, 23, 59, 59, 999))
     
     const query = `
       SELECT DISTINCT
@@ -200,43 +201,48 @@ export class MemberModel {
         COALESCE(m.postcode, SUBSTRING(m.address FROM '[A-Z]{1,2}[0-9]{1,2}[A-Z]?')) as postcode,
         array_agg(DISTINCT mc.condition) FILTER (WHERE mc.condition IS NOT NULL) as medical_conditions
       FROM members m
+      INNER JOIN attendance a ON m.id = a.member_id
       LEFT JOIN medical_conditions mc ON m.id = mc.member_id
-      WHERE m.created_at >= $1 AND m.created_at <= $2
+      WHERE a.date >= $1 AND a.date <= $2 AND a.present = true
       GROUP BY m.id, m.gender, m.birth_year, m.ethnicity, m.sexual_orientation, m.employment_status, m.postcode, m.address
     `
     
     const result = await pool.query(query, [startDate, endDate])
     const data = result.rows
     
-    // Helper function to get location from postcode
+    // Helper function to get broader geographical location from postcode
     const getLocationFromPostcode = (postcode: string): string => {
       if (!postcode) return 'Unknown'
       
       const postcodeUpper = postcode.toUpperCase()
       
-      // Walsall postcodes
-      if (postcodeUpper.startsWith('WS1') || postcodeUpper.startsWith('WS2') || 
-          postcodeUpper.startsWith('WS3') || postcodeUpper.startsWith('WS4') || 
-          postcodeUpper.startsWith('WS5') || postcodeUpper.startsWith('WS6') ||
-          postcodeUpper.startsWith('WS7') || postcodeUpper.startsWith('WS8') ||
-          postcodeUpper.startsWith('WS9') || postcodeUpper.startsWith('WS10') ||
-          postcodeUpper.startsWith('WS11') || postcodeUpper.startsWith('WS12') ||
-          postcodeUpper.startsWith('WS13') || postcodeUpper.startsWith('WS14') ||
-          postcodeUpper.startsWith('WS15')) {
+      // Walsall area - WS postcodes
+      if (postcodeUpper.startsWith('WS')) {
         return 'Walsall'
       }
       
-      // Birmingham postcodes
+      // North Birmingham (Sutton Coldfield) - B7x postcodes
+      if (postcodeUpper.startsWith('B7')) {
+        return 'North Birmingham (Sutton Coldfield)'
+      }
+      
+      // Central Birmingham - Other B postcodes
       if (postcodeUpper.startsWith('B')) {
-        return 'Birmingham'
+        return 'Central Birmingham'
       }
       
-      // West Midlands general
+      // Black Country - Dudley (DY), Wolverhampton (WV), Sandwell/West Bromwich
       if (postcodeUpper.startsWith('DY') || postcodeUpper.startsWith('WV')) {
-        return 'West Midlands'
+        return 'Black Country (Dudley/Wolverhampton/Cradley Heath)'
       }
       
-      return 'Other'
+      // Other West Midlands areas
+      if (postcodeUpper.startsWith('CV') || postcodeUpper.startsWith('DY') || 
+          postcodeUpper.startsWith('WR') || postcodeUpper.startsWith('ST')) {
+        return 'Other West Midlands'
+      }
+      
+      return 'Other Areas'
     }
     
     // Helper function to get age group
@@ -283,11 +289,17 @@ export class MemberModel {
       const location = getLocationFromPostcode(member.postcode)
       locationBreakdown[location] = (locationBreakdown[location] || 0) + 1
       
-      // Medical conditions breakdown
+      // Medical conditions breakdown - preserve detailed diagnosis status
       if (member.medical_conditions && Array.isArray(member.medical_conditions)) {
         member.medical_conditions.forEach((condition: string) => {
           if (condition) {
-            medicalConditionsBreakdown[condition] = (medicalConditionsBreakdown[condition] || 0) + 1
+            // Handle "Other:" conditions
+            if (condition.startsWith('Other:')) {
+              medicalConditionsBreakdown['Other'] = (medicalConditionsBreakdown['Other'] || 0) + 1
+            } else {
+              // Preserve the full condition name including diagnosis status
+              medicalConditionsBreakdown[condition] = (medicalConditionsBreakdown[condition] || 0) + 1
+            }
           }
         })
       }

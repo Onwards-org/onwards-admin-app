@@ -1,0 +1,33 @@
+{
+  "total": 15,
+  "successful": 0,
+  "failed": 15,
+  "errors": [
+    "Row 2: Employment status is required",
+    "Row 2: Ethnicity is required",
+    "Row 3: Ethnicity is required",
+    "Row 4: Ethnicity is required",
+    "Row 5: Employment status is required",
+    "Row 5: Ethnicity is required",
+    "Row 5: Religion is required",
+    "Row 6: Employment status is required",
+    "Row 7: Employment status is required",
+    "Row 8: Employment status is required",
+    "Row 8: Ethnicity is required",
+    "Row 8: Religion is required",
+    "Row 9: Ethnicity is required",
+    "Row 9: Religion is required",
+    "Row 10: Ethnicity is required",
+    "Row 10: Religion is required",
+    "Row 11: Ethnicity is required",
+    "Row 12: Employment status is required",
+    "Row 12: Ethnicity is required",
+    "Row 13: Employment status is required",
+    "Row 13: Ethnicity is required",
+    "Row 14: Employment status is required",
+    "Row 14: Ethnicity is required",
+    "Row 15: Ethnicity is required",
+    "Row 15: Religion is required",
+    "Row 16: Ethnicity is required"
+  ]
+}
