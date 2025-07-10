@@ -42,13 +42,6 @@
             >
               Forms
             </router-link>
-            <router-link 
-              to="/admin" 
-              class="text-purple-200 hover:text-white"
-              :class="{ 'text-white font-medium': $route.path === '/admin' }"
-            >
-              Admin
-            </router-link>
           </nav>
         </div>
         <div class="flex items-center space-x-1 sm:space-x-2 md:space-x-4">
@@ -61,7 +54,7 @@
           <div class="relative" ref="profileDropdown">
             <button
               @click="showProfileDropdown = !showProfileDropdown"
-              class="flex items-center space-x-1 sm:space-x-2 md:space-x-3 hover:bg-white/10 rounded-lg px-1 sm:px-2 md:px-3 py-1 md:py-2 transition-colors"
+              class="flex items-center space-x-1 sm:space-x-2 md:space-x-3 hover:bg-white/10 rounded-lg px-1 sm:px-2 md:px-3 py-1 md:py-2 transition-colors bg-white/20"
             >
               <img 
                 :src="profilePictureUrl" 
@@ -70,7 +63,7 @@
                 class="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full object-cover border-2 border-white/20"
                 @error="handleImageError"
               />
-              <span class="text-xs sm:text-sm text-white hidden sm:block">{{ authStore.user?.username }}</span>
+              <span class="text-xs sm:text-sm text-white">{{ authStore.user?.username || 'User' }}</span>
               <svg 
                 class="w-3 h-3 sm:w-4 sm:h-4 text-white/70 transition-transform hidden sm:block"
                 :class="{ 'rotate-180': showProfileDropdown }"
@@ -99,7 +92,7 @@
                       @error="handleImageError"
                     />
                     <div>
-                      <p class="text-sm font-medium text-gray-900">{{ authStore.user?.username }}</p>
+                      <p class="text-sm font-medium text-gray-900">{{ authStore.user?.username || 'User' }}</p>
                       <p class="text-xs text-gray-500">Administrator</p>
                     </div>
                   </div>
@@ -179,14 +172,6 @@
         >
           Forms
         </router-link>
-        <router-link 
-          to="/admin" 
-          @click="showMobileMenu = false"
-          class="block px-3 py-2 text-purple-200 hover:text-white rounded-md"
-          :class="{ 'text-white bg-purple-800': $route.path === '/admin' }"
-        >
-          Admin
-        </router-link>
       </div>
     </div>
   </nav>
@@ -227,6 +212,12 @@ const logout = () => {
   showProfileDropdown.value = false
   authStore.logout()
   router.push('/login')
+}
+
+const clearAuth = () => {
+  localStorage.clear()
+  authStore.logout()
+  window.location.reload()
 }
 
 const handleClickOutside = (event: MouseEvent) => {
