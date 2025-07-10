@@ -1,65 +1,6 @@
 <template>
   <div class="min-h-screen" style="background-color: #eecbf5;">
-    <!-- COMPLETE NAVIGATION WITH ALL MENU ITEMS -->
-    <nav class="shadow w-full block" style="background-color: #a672b0;">
-      <div class="w-full px-1 sm:px-2 md:px-4 lg:px-6">
-        <div class="flex justify-between h-16">
-          <div class="flex items-center space-x-2 md:space-x-4 lg:space-x-8">
-            <router-link to="/dashboard" class="text-sm md:text-lg lg:text-xl font-semibold text-white whitespace-nowrap">
-              Onwards Admin
-            </router-link>
-            <nav class="hidden md:flex space-x-2 md:space-x-4 lg:space-x-6">
-              <router-link 
-                to="/dashboard" 
-                class="text-purple-200 hover:text-white"
-                :class="{ 'text-white font-medium': $route.path === '/dashboard' }"
-              >
-                Dashboard
-              </router-link>
-              <router-link 
-                to="/members" 
-                class="text-purple-200 hover:text-white"
-                :class="{ 'text-white font-medium': $route.path.startsWith('/members') }"
-              >
-                Members
-              </router-link>
-              <router-link 
-                to="/attendance" 
-                class="text-purple-200 hover:text-white"
-                :class="{ 'text-white font-medium': $route.path === '/attendance' }"
-              >
-                Attendance
-              </router-link>
-              <router-link 
-                to="/reports" 
-                class="text-purple-200 hover:text-white"
-                :class="{ 'text-white font-medium': $route.path === '/reports' }"
-              >
-                Reports
-              </router-link>
-              <router-link 
-                to="/forms" 
-                class="text-purple-200 hover:text-white"
-                :class="{ 'text-white font-medium': $route.path.startsWith('/forms') }"
-              >
-                Forms
-              </router-link>
-            </nav>
-          </div>
-          <div class="flex items-center space-x-1 sm:space-x-2 md:space-x-4">
-            <!-- Profile Picture and Username -->
-            <div class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-lg p-2">
-              <img 
-                :src="defaultProfileSvg"
-                alt="Profile picture"
-                class="w-8 h-8 rounded-full border-2 border-white"
-              />
-              <span class="text-white font-medium">{{ authStore.user?.username || 'User' }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </nav>
+    <AdminNavigation />
 
     <div class="container mx-auto max-w-6xl py-6 px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
@@ -172,7 +113,6 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import AdminNavigation from '@/components/AdminNavigation.vue'
-import defaultProfileSvg from '@/assets/images/default-profile.svg'
 
 const router = useRouter()
 const authStore = useAuthStore()
