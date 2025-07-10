@@ -13,7 +13,6 @@
               <router-link to="/members" class="text-purple-200 hover:text-white">Members</router-link>
               <router-link to="/attendance" class="text-white font-medium">Attendance</router-link>
               <router-link to="/reports" class="text-purple-200 hover:text-white">Reports</router-link>
-              <router-link to="/admin" class="text-purple-200 hover:text-white">Admin</router-link>
             </nav>
           </div>
           <div class="flex items-center space-x-4">

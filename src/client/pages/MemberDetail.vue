@@ -129,7 +129,7 @@
                   :key="condition.id"
                   class="inline-block bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full"
                 >
-                  {{ condition.condition }}
+                  {{ abbreviateCondition(condition.condition) }}
                 </span>
               </div>
             </div>
@@ -247,6 +247,22 @@ const formatBirthDate = (month: number, year: number) => {
     'July', 'August', 'September', 'October', 'November', 'December'
   ]
   return `${monthNames[month - 1]} ${year}`
+}
+
+const abbreviateCondition = (condition: string) => {
+  let abbreviated = condition
+  
+  // Replace long condition names with abbreviations
+  if (abbreviated.toLowerCase().includes('obsessive compulsive disorder') || 
+      abbreviated.toLowerCase().includes('obsessive-compulsive disorder')) {
+    abbreviated = abbreviated.replace(/obsessive[- ]compulsive disorder/gi, 'OCD')
+  }
+  if (abbreviated.toLowerCase().includes('post traumatic stress disorder') || 
+      abbreviated.toLowerCase().includes('post-traumatic stress disorder')) {
+    abbreviated = abbreviated.replace(/post[- ]traumatic stress disorder/gi, 'PTSD')
+  }
+  
+  return abbreviated
 }
 
 const loadMember = async () => {

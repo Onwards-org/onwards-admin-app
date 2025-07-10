@@ -82,33 +82,21 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
     // Title page with white background and purple/gold border
     doc.rect(0, 0, doc.page.width, doc.page.height).fill('white')
     
-    // Create alternating purple and gold border
+    // Create solid purple border
     const borderWidth = 15
-    const colors = ['#8b5cf6', '#fbbf24', '#8b5cf6', '#fbbf24', '#8b5cf6', '#fbbf24', '#8b5cf6']
+    const purpleColor = '#8b5cf6'
     
     // Top border
-    for (let i = 0; i < colors.length; i++) {
-      const segmentWidth = doc.page.width / colors.length
-      doc.rect(i * segmentWidth, 0, segmentWidth, borderWidth).fill(colors[i])
-    }
+    doc.rect(0, 0, doc.page.width, borderWidth).fill(purpleColor)
     
     // Bottom border
-    for (let i = 0; i < colors.length; i++) {
-      const segmentWidth = doc.page.width / colors.length
-      doc.rect(i * segmentWidth, doc.page.height - borderWidth, segmentWidth, borderWidth).fill(colors[i])
-    }
+    doc.rect(0, doc.page.height - borderWidth, doc.page.width, borderWidth).fill(purpleColor)
     
     // Left border
-    for (let i = 0; i < colors.length; i++) {
-      const segmentHeight = doc.page.height / colors.length
-      doc.rect(0, i * segmentHeight, borderWidth, segmentHeight).fill(colors[i])
-    }
+    doc.rect(0, 0, borderWidth, doc.page.height).fill(purpleColor)
     
     // Right border
-    for (let i = 0; i < colors.length; i++) {
-      const segmentHeight = doc.page.height / colors.length
-      doc.rect(doc.page.width - borderWidth, i * segmentHeight, borderWidth, segmentHeight).fill(colors[i])
-    }
+    doc.rect(doc.page.width - borderWidth, 0, borderWidth, doc.page.height).fill(purpleColor)
     
     // Title text
     doc.fillColor('black')

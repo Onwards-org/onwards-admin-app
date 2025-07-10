@@ -270,8 +270,8 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
         
         doc.fontSize(14)
            .fillColor('#333')
-           .text(`Average Score: ${avgScore.toFixed(1)}/6`, 50, 500)
-           .text(`Total Responses: ${total}`, 50, 525)
+           .text(`Average Score: ${avgScore.toFixed(1)}/6`, 50, 530)
+           .text(`Total Responses: ${total}`, 50, 555)
       } else {
         // No data - show message
         doc.fontSize(12)

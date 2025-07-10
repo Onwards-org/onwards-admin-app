@@ -134,8 +134,15 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
   
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return '/login'
+  if (to.meta.requiresAuth) {
+    if (!authStore.isAuthenticated) {
+      return '/login'
+    }
+    // Verify token and populate user data for authenticated routes
+    const isValid = await authStore.verifyToken()
+    if (!isValid) {
+      return '/login'
+    }
   }
   
   if (to.meta.requiresNoAuth && authStore.isAuthenticated) {

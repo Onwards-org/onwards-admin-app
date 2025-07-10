@@ -51,7 +51,26 @@
       "Bash(npm run build:*)",
       "Bash(sudo service:*)",
       "Bash(TZ=UTC date '+%Y-%m-%d')",
-      "Bash(echo)"
+      "Bash(echo)",
+      "Bash(sqlite3:*)",
+      "Bash(sudo pkill:*)",
+      "Bash(echo $PORT)",
+      "Bash(chmod:*)",
+      "Bash(timeout 15 npm run dev)",
+      "Bash(timeout 10 npm run dev:detached)",
+      "Bash(# Start a simple process on port 3001\npython3 -c \"\"\nimport socket\nimport time\ns = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\ns.bind((''localhost'', 3001))\ns.listen(1)\nprint(''Port 3001 is now blocked'')\ntime.sleep(20)\n\"\" &\nBLOCKPID=$!\necho \"\"Blocker PID: $BLOCKPID\"\"\nsleep 2\n\n# Try to start our backend\necho \"\"Testing tsx with blocked port...\"\"\ntsx src/server/index.ts 2>&1 | head -10\n\n# Clean up\nkill $BLOCKPID 2>/dev/null || true)",
+      "Bash(# Start a simple HTTP server on port 8080\npython3 -m http.server 8080 &\nVITE_BLOCKER=$!\necho \"\"Started vite port blocker PID: $VITE_BLOCKER\"\"\nsleep 2\n\n# Try to start Vite\necho \"\"Testing vite with blocked port 8080...\"\"\ncd src/client\ntimeout 10 npx vite --host --port 8080 --strict-port 2>&1 || echo \"\"Vite test completed\"\"\ncd ../..\n\n# Clean up\nkill $VITE_BLOCKER 2>/dev/null || true)",
+      "Bash(# Create a quick test to verify backend port conflict detection\necho \"\"Testing backend port conflict detection...\"\"\n\n# Start port blocker\npython3 -m http.server 3001 &\nBACKEND_BLOCKER=$!\nsleep 2\n\n# Test our backend server\necho \"\"Attempting to start backend with port 3001 blocked...\"\"\nNODE_ENV=development tsx src/server/index.ts 2>&1 | head -20\n\n# Clean up\nkill $BACKEND_BLOCKER 2>/dev/null || true)",
+      "Bash(timeout 10 npx vite --host --port 8080)",
+      "Bash(npx vite:*)",
+      "Bash(timeout 10 npx vite --host --port 8080 --clearScreen false)",
+      "Bash(echo:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(timeout 10 tsx src/server/index.ts)",
+      "Bash(sudo fuser:*)",
+      "Bash(pkill -9 -f \"vite\")",
+      "Bash(pkill -9 -f \"tsx\")"
     ],
     "deny": []
   }

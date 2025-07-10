@@ -22,15 +22,16 @@ export default defineConfig({
     }
   },
   server: {
-    port: 8080,
+    port: parseInt(process.env.FRONTEND_PORT || '8080'),
     host: true,
+    strictPort: true, // Fail if port is already in use instead of trying next port
     proxy: {
       '/api': {
-        target: 'http://localhost:3005',
+        target: `http://localhost:${process.env.PORT || 3001}`,
         changeOrigin: true
       },
       '/uploads': {
-        target: 'http://localhost:3005',
+        target: `http://localhost:${process.env.PORT || 3001}`,
         changeOrigin: true
       }
     }

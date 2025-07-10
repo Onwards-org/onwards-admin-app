@@ -37,18 +37,30 @@ app.get('/api/health', (req, res) => {
 // Serve static files for uploads
 app.use('/uploads', express.static(path.join(__dirname, '../../uploads')))
 
-// Serve static files from dist/client directory
-const clientDistPath = path.join(__dirname, '../../dist/client')
-app.use(express.static(clientDistPath))
+// Only serve static files in production
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from dist/client directory
+  const clientDistPath = path.join(__dirname, '../../dist/client')
+  app.use(express.static(clientDistPath))
 
-// Handle SPA routing - serve index.html for non-API routes
-app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
-    res.sendFile(path.join(clientDistPath, 'index.html'))
-  } else {
-    res.status(404).json({ error: 'API endpoint not found' })
-  }
-})
+  // Handle SPA routing - serve index.html for non-API routes
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+      res.sendFile(path.join(clientDistPath, 'index.html'))
+    } else {
+      res.status(404).json({ error: 'API endpoint not found' })
+    }
+  })
+} else {
+  // In development, let Vite handle frontend serving
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) {
+      res.status(404).json({ error: 'API endpoint not found' })
+    } else {
+      res.status(404).json({ error: 'Frontend should be served by Vite on port 8080' })
+    }
+  })
+}
 
 const startServer = async () => {
   try {
@@ -62,10 +74,23 @@ const startServer = async () => {
       console.warn('Could not create/verify tables (this is ok if tables already exist):', error.message)
     }
     
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`)
       console.log(`Health check: http://localhost:${PORT}/api/health`)
     })
+
+    // Handle port already in use error
+    server.on('error', (error: NodeJS.ErrnoException) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`❌ ERROR: Port ${PORT} is already in use!`)
+        console.error(`Please stop the process using port ${PORT} or change the PORT in your .env file`)
+        process.exit(1)
+      } else {
+        console.error('Server error:', error)
+        process.exit(1)
+      }
+    })
+
   } catch (error) {
     console.error('Failed to start server:', error)
     process.exit(1)
