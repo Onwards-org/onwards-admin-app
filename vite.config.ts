@@ -24,7 +24,18 @@ export default defineConfig({
   server: {
     port: parseInt(process.env.FRONTEND_PORT || '8080'),
     host: true,
-    strictPort: true, // Fail if port is already in use instead of trying next port
+    strictPort: true,
+    // WSL2 specific configuration for file watching
+    watch: {
+      usePolling: true,
+      interval: 1000,
+      binaryInterval: 1000,
+      ignorePermissionErrors: true
+    },
+    // Force file system watching in WSL2
+    fs: {
+      strict: false
+    },
     proxy: {
       '/api': {
         target: `http://localhost:${process.env.PORT || 3001}`,

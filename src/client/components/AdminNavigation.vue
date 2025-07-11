@@ -1,71 +1,96 @@
 <template>
-  <nav class="shadow w-full block" style="background-color: #a672b0;">
-    <div class="w-full px-1 sm:px-2 md:px-4 lg:px-6">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center space-x-2 md:space-x-4 lg:space-x-8">
-          <router-link to="/dashboard" class="text-sm md:text-lg lg:text-xl font-semibold text-white whitespace-nowrap">
+  <nav class="shadow w-full" style="background-color: #a672b0;">
+    <div style="width: 100% !important; padding: 0 16px !important; margin: 0 !important; max-width: none !important;">
+      <div style="display: flex !important; justify-content: space-between !important; align-items: center !important; height: 64px !important; overflow: visible !important; position: relative !important; width: 100% !important;">
+        <div class="flex items-center space-x-8">
+          <router-link 
+            to="/dashboard" 
+            class="text-xl font-semibold text-white"
+            style="white-space: nowrap !important; min-width: 160px !important; flex-shrink: 0 !important;"
+          >
             Onwards Admin
           </router-link>
-          <nav class="hidden md:flex space-x-2 md:space-x-4 lg:space-x-6">
+          <nav class="hidden md:flex space-x-6">
             <router-link 
               to="/dashboard" 
-              class="text-purple-200 hover:text-white"
+              class="text-purple-200 hover:text-white transition-colors"
               :class="{ 'text-white font-medium': $route.path === '/dashboard' }"
             >
               Dashboard
             </router-link>
             <router-link 
               to="/members" 
-              class="text-purple-200 hover:text-white"
-              :class="{ 'text-white font-medium': $route.path.startsWith('/members') }"
+              class="text-purple-200 hover:text-white transition-colors"
+              :class="{ 'text-white font-medium': $route.path === '/members' }"
             >
               Members
             </router-link>
             <router-link 
               to="/attendance" 
-              class="text-purple-200 hover:text-white"
+              class="text-purple-200 hover:text-white transition-colors"
               :class="{ 'text-white font-medium': $route.path === '/attendance' }"
             >
               Attendance
             </router-link>
             <router-link 
               to="/reports" 
-              class="text-purple-200 hover:text-white"
+              class="text-purple-200 hover:text-white transition-colors"
               :class="{ 'text-white font-medium': $route.path === '/reports' }"
             >
               Reports
             </router-link>
             <router-link 
               to="/forms" 
-              class="text-purple-200 hover:text-white"
+              class="text-purple-200 hover:text-white transition-colors"
               :class="{ 'text-white font-medium': $route.path.startsWith('/forms') }"
             >
               Forms
             </router-link>
           </nav>
         </div>
-        <div class="flex items-center space-x-1 sm:space-x-2 md:space-x-4">
-          <!-- Mobile menu button -->
-          <button class="md:hidden text-white p-1" @click="showMobileMenu = !showMobileMenu">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-            </svg>
-          </button>
-          <div class="relative" ref="profileDropdown">
+        
+        <!-- Profile Dropdown Section -->
+        <div style="
+          position: absolute !important;
+          right: 20px !important;
+          top: 50% !important;
+          transform: translateY(-50%) !important;
+          display: flex !important;
+          align-items: center !important;
+          gap: 12px !important;
+          z-index: 100 !important;
+        ">
+          <!-- Profile dropdown -->
+          <div style="position: relative !important;" ref="profileDropdown">
             <button
               @click="showProfileDropdown = !showProfileDropdown"
-              class="flex items-center space-x-1 sm:space-x-2 md:space-x-3 hover:bg-white/10 rounded-lg px-1 sm:px-2 md:px-3 py-1 md:py-2 transition-colors bg-white/20"
+              style="
+                display: flex !important;
+                align-items: center !important;
+                gap: 8px !important;
+                padding: 6px 12px !important;
+                background-color: rgba(255,255,255,0.1) !important;
+                border: 1px solid rgba(255,255,255,0.2) !important;
+                border-radius: 8px !important;
+                cursor: pointer !important;
+                transition: all 0.2s ease !important;
+                color: white !important;
+                font-size: 14px !important;
+                font-weight: 500 !important;
+              "
+              onmouseover="this.style.backgroundColor='rgba(255,255,255,0.2)'"
+              onmouseout="this.style.backgroundColor='rgba(255,255,255,0.1)'"
             >
               <img 
                 :src="profilePictureUrl" 
                 :alt="`${authStore.user?.username}'s profile picture`"
                 :key="authStore.user?.profile_picture || 'default'"
-                class="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 rounded-full object-cover border-2 border-white/20"
+                class="w-8 h-8 rounded-full object-cover border-2 border-white/30"
                 @error="handleImageError"
               />
-              <span class="text-xs sm:text-sm text-white">{{ authStore.user?.username || 'User' }}</span>
+              <span class="text-sm text-white font-medium">{{ authStore.user?.username || 'User' }}</span>
               <svg 
-                class="w-3 h-3 sm:w-4 sm:h-4 text-white/70 transition-transform hidden sm:block"
+                class="w-4 h-4 text-white/70 transition-transform duration-200"
                 :class="{ 'rotate-180': showProfileDropdown }"
                 fill="none" 
                 stroke="currentColor" 
@@ -78,21 +103,34 @@
             <!-- Profile Dropdown Menu -->
             <div
               v-if="showProfileDropdown"
-              class="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-50 border border-gray-200"
+              style="
+                position: absolute !important;
+                right: 0 !important;
+                top: 100% !important;
+                margin-top: 8px !important;
+                width: 224px !important;
+                background-color: white !important;
+                border-radius: 8px !important;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+                border: 1px solid rgba(0,0,0,0.1) !important;
+                z-index: 9999 !important;
+                overflow: hidden !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                display: block !important;
+              "
             >
               <div class="py-1">
                 <!-- User Info Header -->
-                <div class="px-4 py-3 border-b border-gray-100">
+                <div class="px-4 py-3 bg-gray-50 border-b border-gray-100">
                   <div class="flex items-center space-x-3">
                     <img 
                       :src="profilePictureUrl" 
                       :alt="`${authStore.user?.username}'s profile picture`"
-                      :key="authStore.user?.profile_picture || 'default'"
                       class="w-10 h-10 rounded-full object-cover"
-                      @error="handleImageError"
                     />
                     <div>
-                      <p class="text-sm font-medium text-gray-900">{{ authStore.user?.username || 'User' }}</p>
+                      <p class="text-sm font-medium text-gray-900">{{ authStore.user?.username }}</p>
                       <p class="text-xs text-gray-500">Administrator</p>
                     </div>
                   </div>
@@ -102,22 +140,22 @@
                 <router-link
                   to="/admin"
                   @click="showProfileDropdown = false"
-                  class="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
                 >
-                  <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-4 h-4 mr-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                   Settings
                 </router-link>
                 
-                <div class="border-t border-gray-100 my-1"></div>
+                <div class="border-t border-gray-100"></div>
                 
                 <button
                   @click="logout"
-                  class="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50 transition-colors"
+                  class="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
                 >
-                  <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-4 h-4 mr-3 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
                   Sign Out
@@ -126,49 +164,50 @@
             </div>
           </div>
         </div>
+        
       </div>
     </div>
     
-    <!-- Mobile menu -->
+    <!-- Mobile Menu -->
     <div v-if="showMobileMenu" class="md:hidden bg-purple-700 border-t border-purple-600">
       <div class="px-2 pt-2 pb-3 space-y-1">
-        <router-link 
-          to="/dashboard" 
+        <router-link
+          to="/dashboard"
           @click="showMobileMenu = false"
-          class="block px-3 py-2 text-purple-200 hover:text-white rounded-md"
-          :class="{ 'text-white bg-purple-800': $route.path === '/dashboard' }"
+          class="block px-3 py-2 text-base font-medium text-purple-100 hover:text-white hover:bg-purple-600 rounded-md transition-colors"
+          :class="{ 'text-white bg-purple-600': $route.path === '/dashboard' }"
         >
           Dashboard
         </router-link>
-        <router-link 
-          to="/members" 
+        <router-link
+          to="/members"
           @click="showMobileMenu = false"
-          class="block px-3 py-2 text-purple-200 hover:text-white rounded-md"
-          :class="{ 'text-white bg-purple-800': $route.path.startsWith('/members') }"
+          class="block px-3 py-2 text-base font-medium text-purple-100 hover:text-white hover:bg-purple-600 rounded-md transition-colors"
+          :class="{ 'text-white bg-purple-600': $route.path === '/members' }"
         >
           Members
         </router-link>
-        <router-link 
-          to="/attendance" 
+        <router-link
+          to="/attendance"
           @click="showMobileMenu = false"
-          class="block px-3 py-2 text-purple-200 hover:text-white rounded-md"
-          :class="{ 'text-white bg-purple-800': $route.path === '/attendance' }"
+          class="block px-3 py-2 text-base font-medium text-purple-100 hover:text-white hover:bg-purple-600 rounded-md transition-colors"
+          :class="{ 'text-white bg-purple-600': $route.path === '/attendance' }"
         >
           Attendance
         </router-link>
-        <router-link 
-          to="/reports" 
+        <router-link
+          to="/reports"
           @click="showMobileMenu = false"
-          class="block px-3 py-2 text-purple-200 hover:text-white rounded-md"
-          :class="{ 'text-white bg-purple-800': $route.path === '/reports' }"
+          class="block px-3 py-2 text-base font-medium text-purple-100 hover:text-white hover:bg-purple-600 rounded-md transition-colors"
+          :class="{ 'text-white bg-purple-600': $route.path === '/reports' }"
         >
           Reports
         </router-link>
-        <router-link 
-          to="/forms" 
+        <router-link
+          to="/forms"
           @click="showMobileMenu = false"
-          class="block px-3 py-2 text-purple-200 hover:text-white rounded-md"
-          :class="{ 'text-white bg-purple-800': $route.path.startsWith('/forms') }"
+          class="block px-3 py-2 text-base font-medium text-purple-100 hover:text-white hover:bg-purple-600 rounded-md transition-colors"
+          :class="{ 'text-white bg-purple-600': $route.path.startsWith('/forms') }"
         >
           Forms
         </router-link>
@@ -212,12 +251,6 @@ const logout = () => {
   showProfileDropdown.value = false
   authStore.logout()
   router.push('/login')
-}
-
-const clearAuth = () => {
-  localStorage.clear()
-  authStore.logout()
-  window.location.reload()
 }
 
 const handleClickOutside = (event: MouseEvent) => {
