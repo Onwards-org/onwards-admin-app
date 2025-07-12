@@ -11,9 +11,9 @@ export interface Member {
   id: number
   name: string
   phone: string
-  email: string
+  email: string | null
   address: string
-  postcode: string
+  postcode?: string
   birth_month: number
   birth_year: number
   employment_status: string
@@ -22,9 +22,9 @@ export interface Member {
   gender: string
   sexual_orientation: string
   transgender_status: string
-  hobbies_interests: string
-  pregnancy_maternity: string
-  additional_health_info: string
+  hobbies_interests?: string
+  pregnancy_maternity?: string
+  additional_health_info?: string
   privacy_accepted: boolean
   created_at: Date
   updated_at: Date
@@ -82,10 +82,10 @@ export interface AttendanceReport {
 }
 
 export const EMPLOYMENT_OPTIONS = [
-  'Full-time employment',
   'Part-time employment', 
   'Self-employed',
   'Unemployed',
+  'Full-time employment',
   'Student - Full-time',
   'Student - Part-time',
   'Retired',

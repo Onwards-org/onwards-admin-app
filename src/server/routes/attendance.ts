@@ -67,7 +67,34 @@ const processedMedicalConditions = (data: Record<string, number>) => {
     }
   })
   
-  return { totals, stacked }
+  // Apply custom sorting: regular conditions, then visual impairment, then other
+  const sortedTotals: Record<string, number> = {}
+  const visualImpairmentKeys: string[] = []
+  const otherKeys: string[] = []
+  
+  // First pass: separate conditions by type
+  Object.keys(totals).forEach(key => {
+    const lowerKey = key.toLowerCase()
+    if (lowerKey === 'visual impairment' || lowerKey.includes('hearing/visual impairment')) {
+      visualImpairmentKeys.push(key)
+    } else if (lowerKey.includes('other') || lowerKey.includes('prefer not to say')) {
+      otherKeys.push(key)
+    } else {
+      sortedTotals[key] = totals[key]
+    }
+  })
+  
+  // Add visual impairment conditions
+  visualImpairmentKeys.forEach(key => {
+    sortedTotals[key] = totals[key]
+  })
+  
+  // Add other conditions last
+  otherKeys.forEach(key => {
+    sortedTotals[key] = totals[key]
+  })
+  
+  return { totals: sortedTotals, stacked }
 }
 
 // Helper function to draw horizontal compound bar chart for medical conditions
@@ -570,7 +597,7 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
       blue: ['#1e40af', '#dc2626', '#059669', '#d97706', '#7c3aed'],
       green: ['#059669', '#dc2626', '#1e40af', '#d97706', '#7c3aed'],
       purple: ['#7c3aed', '#dc2626', '#059669', '#d97706', '#1e40af'],
-      orange: ['#d97706', '#dc2626', '#059669', '#1e40af', '#7c3aed'],
+      orange: ['#d97706', '#dc2626', '#059669', '#1e40af', '#7c3aed', '#ea580c', '#16a34a', '#2563eb', '#9333ea', '#0891b2', '#be123c', '#ca8a04'],
       red: ['#dc2626', '#059669', '#1e40af', '#d97706', '#7c3aed'],
       teal: ['#0891b2', '#dc2626', '#059669', '#d97706', '#7c3aed']
     }
@@ -663,12 +690,43 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
       return sorted
     }
 
+    // Helper function to sort medical conditions with visual impairment above 'other'
+    const sortMedicalConditions = (data: Record<string, number>) => {
+      const sorted: Record<string, number> = {}
+      const visualImpairmentKeys: string[] = []
+      const otherKeys: string[] = []
+      
+      // First add all regular conditions (not visual impairment, not other)
+      Object.keys(data).forEach(key => {
+        const lowerKey = key.toLowerCase()
+        if (lowerKey.includes('visual impairment') || lowerKey.includes('hearing/visual impairment')) {
+          visualImpairmentKeys.push(key)
+        } else if (lowerKey.includes('other') || lowerKey.includes('prefer not to say')) {
+          otherKeys.push(key)
+        } else {
+          sorted[key] = data[key]
+        }
+      })
+      
+      // Then add visual impairment items
+      visualImpairmentKeys.forEach(key => {
+        sorted[key] = data[key]
+      })
+      
+      // Finally add other/prefer not to say items at the very end
+      otherKeys.forEach(key => {
+        sorted[key] = data[key]
+      })
+      
+      return sorted
+    }
+
     const sections = [
       { title: 'Gender Distribution', data: sortWithOtherAtBottom(report.stats.genders), type: 'pie', colors: colorPalettes.blue },
       { title: 'Age Groups', data: sortAgeGroups(report.stats.age_groups), type: 'vertical', colors: colorPalettes.green, rotateLabels: false },
       { title: 'Sexual Orientation', data: sortWithOtherAtBottom(groupSexualOrientations(report.stats.sexual_orientations)), type: 'pie', colors: colorPalettes.red },
       { title: 'Employment Status', data: sortEmploymentStatus(report.stats.employment_status), type: 'pie', colors: colorPalettes.orange },
-      { title: 'Medical Conditions', data: sortWithOtherAtBottom(report.stats.disabilities), type: 'medical', colors: colorPalettes.purple },
+      { title: 'Medical Conditions', data: sortMedicalConditions(report.stats.disabilities), type: 'medical', colors: colorPalettes.purple },
       { title: 'Geographic Location', data: sortWithOtherAtBottom(report.stats.locations || {}), type: 'pie', colors: colorPalettes.teal }
     ]
     

@@ -1,8 +1,8 @@
 export const EMPLOYMENT_OPTIONS = [
-    'Full-time employment',
     'Part-time employment',
     'Self-employed',
     'Unemployed',
+    'Full-time employment',
     'Student - Full-time',
     'Student - Part-time',
     'Retired',

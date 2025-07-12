@@ -156,11 +156,6 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
        .fontSize(18)
        .text(`${getMonthName(month)} ${year}`, 50, 260, { align: 'center' })
     
-    // Add report summary on title page
-    doc.fontSize(14)
-       .fillColor('#666')
-       .text(`Total Responses: ${reportData.totalResponses}`, 50, 350, { align: 'center' })
-       .text(`Average Wellbeing Score: ${reportData.avgWellbeingScore}/30`, 50, 380, { align: 'center' })
     
     // Footer on title page
     doc.fontSize(10)

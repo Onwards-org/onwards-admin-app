@@ -317,7 +317,35 @@ function drawVerticalBarChart(doc: PDFDocument, x: number, y: number, width: num
 
 function drawHorizontalBarChart(doc: PDFDocument, x: number, y: number, width: number, height: number, data: Record<string, number>, title: string) {
   const colors = ['#8B5CF6', '#06B6D4', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#6366F1', '#84CC16']
-  const entries = Object.entries(data).filter(([label, value]) => value > 0)
+  
+  // Sort medical conditions data: regular conditions, then visual impairment, then other
+  const sortedData: Record<string, number> = {}
+  const visualImpairmentKeys: string[] = []
+  const otherKeys: string[] = []
+  
+  // Separate conditions by type
+  Object.keys(data).forEach(key => {
+    const lowerKey = key.toLowerCase()
+    if (lowerKey === 'visual impairment' || lowerKey.includes('hearing/visual impairment')) {
+      visualImpairmentKeys.push(key)
+    } else if (lowerKey.includes('other') || lowerKey.includes('prefer not to say')) {
+      otherKeys.push(key)
+    } else {
+      sortedData[key] = data[key]
+    }
+  })
+  
+  // Add visual impairment conditions before other
+  visualImpairmentKeys.forEach(key => {
+    sortedData[key] = data[key]
+  })
+  
+  // Add other conditions last
+  otherKeys.forEach(key => {
+    sortedData[key] = data[key]
+  })
+  
+  const entries = Object.entries(sortedData).filter(([label, value]) => value > 0)
   const maxValue = Math.max(...Object.values(data))
   
   if (maxValue === 0 || entries.length === 0) {

@@ -108,18 +108,6 @@ router.get('/report/:year/:month/pdf', requireAuth, async (req: AuthenticatedReq
     const totalSubmissions = report.stats.total_submissions
     doc.fontSize(16).text(`Total Submissions: ${totalSubmissions}`, 40, 380, { align: 'center' })
     
-    const categories = [
-      'Feeling Isolated from Others',
-      'Feeling Left Out', 
-      'Lack of Companionship',
-      'Response Distribution Analysis',
-      'Monthly Summary Statistics'
-    ]
-    
-    doc.fontSize(14).text('Report Categories:', 40, 430, { align: 'center' })
-    categories.forEach((category, index) => {
-      doc.text(`• ${category}`, 40, 460 + index * 20, { align: 'center' })
-    })
     
     // Helper function to create page header
     const createHeader = (title: string) => {
