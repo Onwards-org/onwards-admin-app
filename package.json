@@ -16,7 +16,7 @@
     "dev:clean": "node scripts/robust-dev.js stop",
     "dev:health": "node scripts/robust-dev.js status",
     "dev:ports": "bash -c 'echo \"=== Active Ports ===\" && ss -tlnp 2>/dev/null | grep -E \":(3001|8080)\" || echo \"No development ports in use\"'",
-    "build": "npm run build:client",
+    "build": "vite build",
     "build:client": "vite build",
     "build:server": "tsc -p tsconfig.server.json --skipLibCheck",
     "build:vercel": "npm run build:client",
