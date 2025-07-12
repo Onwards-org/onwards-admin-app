@@ -1,27 +1,6 @@
 <template>
   <div class="min-h-screen" style="background-color: #eecbf5;">
-    
-    <nav class="shadow" style="background-color: #a672b0;">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-          <div class="flex items-center space-x-8">
-            <router-link to="/dashboard" class="text-xl font-semibold text-white">
-              Onwards Admin
-            </router-link>
-            <nav class="flex space-x-8">
-              <router-link to="/dashboard" class="text-purple-200 hover:text-white">Dashboard</router-link>
-              <router-link to="/members" class="text-purple-200 hover:text-white">Members</router-link>
-              <router-link to="/attendance" class="text-white font-medium">Attendance</router-link>
-              <router-link to="/reports" class="text-purple-200 hover:text-white">Reports</router-link>
-            </nav>
-          </div>
-          <div class="flex items-center space-x-4">
-            <span class="text-sm text-white">{{ authStore.user?.username }}</span>
-            <button @click="logout" class="text-sm text-purple-200 hover:text-white">Logout</button>
-          </div>
-        </div>
-      </div>
-    </nav>
+    <AdminNavigation />
 
     <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
       <div class="px-4 py-6 sm:px-0">
@@ -366,6 +345,7 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import AdminNavigation from '@/components/AdminNavigation.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -427,10 +407,6 @@ const debugInfo = computed(() => {
   }
 })
 
-const logout = () => {
-  authStore.logout()
-  router.push('/login')
-}
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-GB', {

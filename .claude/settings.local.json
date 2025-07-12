@@ -70,7 +70,8 @@
       "Bash(timeout 10 tsx src/server/index.ts)",
       "Bash(sudo fuser:*)",
       "Bash(pkill -9 -f \"vite\")",
-      "Bash(pkill -9 -f \"tsx\")"
+      "Bash(pkill -9 -f \"tsx\")",
+      "Bash(git push:*)"
     ],
     "deny": []
   }

@@ -6,7 +6,7 @@
           <router-link 
             to="/dashboard" 
             class="text-xl font-semibold text-white"
-            style="white-space: nowrap !important; min-width: 160px !important; flex-shrink: 0 !important;"
+            style="white-space: nowrap !important; min-width: 180px !important; flex-shrink: 0 !important; display: block !important;"
           >
             Onwards Admin
           </router-link>
