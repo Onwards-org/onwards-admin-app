@@ -53,7 +53,7 @@ JWT_SECRET=threep1g5
 PORT=3001
 FRONTEND_PORT=8080
 NODE_ENV=development
-VITE_GOOGLE_MAPS_API_KEY=AIzaSyAnkQzs5Tzq0omcaZxgT5C4rbICNSRkb_8
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 ```
 
 ## Development Server Management

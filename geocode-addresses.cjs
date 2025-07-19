@@ -3,8 +3,8 @@ const https = require('https');
 const fs = require('fs');
 require('dotenv/config');
 
-// Google Places API Key (from client .env)
-const GOOGLE_API_KEY = 'AIzaSyAnkQzs5Tzq0omcaZxgT5C4rbICNSRkb_8';
+// Google Places API Key from environment variable
+const GOOGLE_API_KEY = process.env.VITE_GOOGLE_MAPS_API_KEY;
 
 class AddressGeocoder {
   constructor() {
