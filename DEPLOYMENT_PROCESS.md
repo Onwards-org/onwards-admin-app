@@ -402,4 +402,194 @@ export DEBUG=true
 npm run dev
 ```
 
-This comprehensive guide should help manage the development environment effectively, particularly in the challenging Windows/WSL2 context where file system and process management can be complex.
+## Production Deployment and Process Management
+
+### Production Server Management
+
+The application includes comprehensive production server management scripts for running in production environments.
+
+#### Production Commands
+
+```bash
+# Build and start production server in background
+npm run prod:start
+
+# Stop production server
+npm run prod:stop
+
+# Restart production server
+npm run prod:restart
+
+# Check production server status
+npm run prod:status
+
+# View production server logs
+npm run prod:logs
+
+# Build application for production
+npm run prod:build
+```
+
+#### Production Deployment Process
+
+1. **Prepare for Production**:
+   ```bash
+   # Ensure you're in the project root
+   cd /root/Repos/onwards-admin-app
+   
+   # Stop any development servers
+   npm run dev:stop
+   
+   # Build the application
+   npm run prod:build
+   ```
+
+2. **Start Production Server**:
+   ```bash
+   # Start production server (runs in background)
+   npm run prod:start
+   ```
+
+3. **Verify Deployment**:
+   ```bash
+   # Check server status
+   npm run prod:status
+   
+   # Test health endpoint
+   curl http://localhost:3001/api/health
+   
+   # Test frontend (if serving frontend from production)
+   curl http://localhost:8080/
+   ```
+
+#### Production Server Features
+
+- **Background Process**: Server runs detached from terminal
+- **PID Management**: Automatic PID file creation for process tracking
+- **Graceful Shutdown**: SIGTERM followed by SIGKILL if needed
+- **Health Monitoring**: Built-in health check endpoints
+- **Port Conflict Resolution**: Automatic cleanup of conflicting processes
+- **Log Management**: Centralized logging with log viewing commands
+
+#### Production Environment Variables
+
+```bash
+# Required for production
+NODE_ENV=production
+PORT=3001
+DATABASE_URL=postgresql://onwards_admin:simba123@db.onwards.org.uk:5432/onwards_prod
+JWT_SECRET=threep1g5
+
+# Optional
+FRONTEND_PORT=8080
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
+```
+
+#### Process Management Details
+
+The production scripts handle:
+- **Automatic Build**: Builds both client and server before starting
+- **Port Cleanup**: Kills any processes using ports 3001, 8080, 80, 443
+- **Process Patterns**: Identifies and manages production processes
+- **Graceful Termination**: 5-second grace period before force kill
+- **PID Tracking**: Creates `.prod-server.pid` file for process management
+
+#### Monitoring Production
+
+```bash
+# Real-time status monitoring
+watch -n 30 'npm run prod:status'
+
+# View recent logs
+npm run prod:logs
+
+# Check port usage
+ss -tlnp | grep -E "(3001|8080)"
+
+# Process information
+ps aux | grep "dist/server"
+```
+
+#### Troubleshooting Production
+
+**Issue: Port Already in Use**
+```bash
+# Check what's using the port
+ss -tlnp | grep 8080
+
+# Force cleanup
+npm run prod:stop
+sleep 5
+npm run prod:start
+```
+
+**Issue: Server Won't Start**
+```bash
+# Check build status
+npm run prod:build
+
+# Check logs for errors
+npm run prod:logs
+
+# Manual process cleanup
+pkill -f "dist/server"
+npm run prod:start
+```
+
+**Issue: Health Check Failing**
+```bash
+# Check server status
+npm run prod:status
+
+# Test database connection
+curl http://localhost:3001/api/health
+
+# Check if server is actually running
+ps aux | grep "dist/server"
+```
+
+#### Production vs Development
+
+| Aspect | Development | Production |
+|--------|-------------|------------|
+| Process Management | `npm run dev` | `npm run prod:start` |
+| File Serving | Vite dev server (8080) | Built files |
+| Backend | `tsx src/server/index.ts` | `node dist/server/index.js` |
+| Environment | NODE_ENV=development | NODE_ENV=production |
+| Process Type | Attached to terminal | Background/detached |
+| Restart Behavior | Auto-restart on changes | Manual restart required |
+
+#### Systemd Integration (Optional)
+
+For better production management, consider creating a systemd service:
+
+```bash
+# Create service file
+sudo tee /etc/systemd/system/onwards-admin-app.service > /dev/null <<EOF
+[Unit]
+Description=Onwards Admin App
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/Repos/onwards-admin-app
+ExecStart=/usr/bin/node dist/server/index.js
+Restart=always
+RestartSec=10
+Environment=NODE_ENV=production
+Environment=PORT=3001
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Enable and start service
+sudo systemctl enable onwards-admin-app
+sudo systemctl start onwards-admin-app
+
+# Check status
+sudo systemctl status onwards-admin-app
+```
+
+This comprehensive guide should help manage both development and production environments effectively, particularly in the challenging Windows/WSL2 context where file system and process management can be complex.

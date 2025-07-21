@@ -88,11 +88,26 @@ async function killProcessesOnPort(port) {
 async function killAllDevProcesses() {
   info('Killing all development processes...');
   
+  // Stop PM2 processes if they exist
+  try {
+    const { stdout } = await execAsync('pm2 list --no-format 2>/dev/null || echo ""');
+    if (stdout.includes('onwards-admin')) {
+      info('Stopping PM2 processes...');
+      await execAsync('pm2 stop onwards-admin-server onwards-admin-client 2>/dev/null || true');
+      await execAsync('pm2 delete onwards-admin-server onwards-admin-client 2>/dev/null || true');
+      success('PM2 processes cleaned');
+    }
+  } catch (e) {
+    // PM2 might not be installed or have processes
+  }
+  
   const processPatterns = [
     'tsx.*src/server',
     'vite.*--host',
     'node.*onwards-admin-app',
-    'npm.*dev'
+    'npm.*dev',
+    'dist/server',
+    'node.*server.*index.js'
   ];
 
   for (const pattern of processPatterns) {
