@@ -74,7 +74,27 @@
       "Bash(git push:*)",
       "Bash(npm run restart:*)",
       "Bash(timeout 30 npx tsx src/server/index.ts)",
-      "Bash(timeout 10 npx tsx src/server/index.ts)"
+      "Bash(timeout 10 npx tsx src/server/index.ts)",
+      "Bash(git config:*)",
+      "Bash(systemctl:*)",
+      "Bash(pm2 list:*)",
+      "Bash(pm2 stop:*)",
+      "Bash(pm2 delete:*)",
+      "Bash(tsc:*)",
+      "Bash(cp:*)",
+      "Bash(npm run prod:start:*)",
+      "Bash(timeout:*)",
+      "Bash(npm run:*)",
+      "Bash(sudo systemctl:*)",
+      "Bash(sudo certbot:*)",
+      "Bash(nslookup:*)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt install:*)",
+      "Bash(sudo tail:*)",
+      "Bash(sudo mkdir:*)",
+      "Bash(sudo openssl req:*)",
+      "Bash(sudo cp:*)",
+      "Bash(sudo nginx:*)"
     ],
     "deny": []
   }

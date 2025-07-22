@@ -4,6 +4,7 @@ import { spawn, exec } from 'child_process';
 import { promisify } from 'util';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import fs from 'fs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -122,7 +123,7 @@ async function startProduction() {
         success('Production server started successfully');
         
         // Write PID file for later management
-        require('fs').writeFileSync(path.join(projectRoot, '.prod-server.pid'), server.pid.toString());
+        fs.writeFileSync(path.join(projectRoot, '.prod-server.pid'), server.pid.toString());
         
         resolve(server);
       }
@@ -198,7 +199,7 @@ async function checkStatus() {
     let pid = null;
     
     try {
-      pid = require('fs').readFileSync(pidFile, 'utf8').trim();
+      pid = fs.readFileSync(pidFile, 'utf8').trim();
     } catch (e) {
       info('No PID file found');
     }
@@ -210,7 +211,7 @@ async function checkStatus() {
         success(`Production server is running (PID: ${pid})`);
       } catch (e) {
         error(`PID ${pid} is not running, cleaning up PID file`);
-        require('fs').unlinkSync(pidFile);
+        fs.unlinkSync(pidFile);
       }
     }
     
@@ -294,7 +295,7 @@ async function main() {
       // Clean up PID file
       try {
         const pidFile = path.join(projectRoot, '.prod-server.pid');
-        require('fs').unlinkSync(pidFile);
+        fs.unlinkSync(pidFile);
       } catch (e) {
         // PID file might not exist
       }

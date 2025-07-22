@@ -74,7 +74,7 @@ const startServer = async () => {
       console.warn('Could not create/verify tables (this is ok if tables already exist):', error.message)
     }
     
-    const server = app.listen(PORT, () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       console.log(`Server running on port ${PORT}`)
       console.log(`Health check: http://localhost:${PORT}/api/health`)
     })
