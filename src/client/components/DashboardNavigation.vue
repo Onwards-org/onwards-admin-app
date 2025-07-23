@@ -3,58 +3,33 @@
     <div style="width: 100% !important; padding: 0 16px !important; margin: 0 !important; max-width: none !important;">
       <div style="display: flex !important; justify-content: space-between !important; align-items: center !important; height: 64px !important; overflow: visible !important; position: relative !important; width: 100% !important;">
         
-        <!-- Centered Logo -->
-        <div style="position: absolute !important; left: 50% !important; top: 50% !important; transform: translate(-50%, -50%) !important;">
+        <!-- Logo -->
+        <div class="flex-1 min-w-0">
           <div 
-            class="text-2xl font-bold text-white"
-            style="white-space: nowrap !important; text-align: center !important;"
+            class="text-lg sm:text-xl md:text-2xl font-bold text-white truncate text-center"
           >
             Onwards Admin
           </div>
         </div>
         
-        <!-- Profile Dropdown Section (Right side) -->
-        <div style="
-          position: absolute !important;
-          right: 20px !important;
-          top: 50% !important;
-          transform: translateY(-50%) !important;
-          display: flex !important;
-          align-items: center !important;
-          gap: 12px !important;
-          z-index: 100 !important;
-        ">
+        <!-- Profile Dropdown Section -->
+        <div class="flex items-center flex-shrink-0">
           <!-- Profile dropdown -->
           <div style="position: relative !important;" ref="profileDropdown">
             <button
               @click="showProfileDropdown = !showProfileDropdown"
-              style="
-                display: flex !important;
-                align-items: center !important;
-                gap: 8px !important;
-                padding: 6px 12px !important;
-                background-color: rgba(255,255,255,0.1) !important;
-                border: 1px solid rgba(255,255,255,0.2) !important;
-                border-radius: 8px !important;
-                cursor: pointer !important;
-                transition: all 0.2s ease !important;
-                color: white !important;
-                font-size: 14px !important;
-                font-weight: 500 !important;
-              "
-              onmouseover="this.style.backgroundColor='rgba(255,255,255,0.2)'"
-              onmouseout="this.style.backgroundColor='rgba(255,255,255,0.1)'"
+              class="flex items-center gap-1 sm:gap-2 p-1 sm:p-2 bg-white/10 border border-white/20 rounded-lg cursor-pointer transition-all duration-200 text-white hover:bg-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
             >
               <img 
                 :src="profilePictureUrl" 
                 :alt="`${authStore.user?.username}'s profile picture`"
                 :key="authStore.user?.profile_picture || 'default'"
-                class="w-8 h-8 rounded-full object-cover border-2 border-white/30"
+                class="w-6 h-6 sm:w-8 sm:h-8 rounded-full object-cover border-2 border-white/30 flex-shrink-0"
                 @error="handleImageError"
               />
-              <span class="text-sm text-white font-medium">{{ authStore.user?.username || 'User' }}</span>
+              <span class="hidden sm:block text-sm text-white font-medium max-w-20 truncate">{{ authStore.user?.username || 'User' }}</span>
               <svg 
-                class="w-4 h-4 text-white/70 transition-transform duration-200"
+                class="w-3 h-3 sm:w-4 sm:h-4 text-white/70 transition-transform duration-200 flex-shrink-0"
                 :class="{ 'rotate-180': showProfileDropdown }"
                 fill="none" 
                 stroke="currentColor" 
@@ -67,22 +42,7 @@
             <!-- Profile Dropdown Menu -->
             <div
               v-if="showProfileDropdown"
-              style="
-                position: absolute !important;
-                right: 0 !important;
-                top: 100% !important;
-                margin-top: 8px !important;
-                width: 224px !important;
-                background-color: white !important;
-                border-radius: 8px !important;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
-                border: 1px solid rgba(0,0,0,0.1) !important;
-                z-index: 9999 !important;
-                overflow: hidden !important;
-                visibility: visible !important;
-                opacity: 1 !important;
-                display: block !important;
-              "
+              class="absolute right-0 top-full mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 z-50 overflow-hidden"
             >
               <div class="py-1">
                 <!-- User Info Header -->
