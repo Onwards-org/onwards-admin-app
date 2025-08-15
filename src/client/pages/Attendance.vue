@@ -132,46 +132,53 @@
               <div class="px-0">
                 <span class="text-lg font-medium text-gray-700">{{ formatDate(currentDate) }}</span>
               </div>
-              <div class="flex items-center justify-between mt-3">
-                <div class="flex items-center space-x-3">
+              <!-- Mobile-responsive layout -->
+              <div class="space-y-3 mt-3">
+                <!-- First row: Date picker (recording mode only) -->
+                <div v-if="isRecordingMode" class="flex items-center">
                   <input
-                    v-if="isRecordingMode"
                     v-model="currentDate"
                     @change="loadMembersForDate"
                     type="date"
                     class="px-3 py-2 border border-gray-300 rounded-md focus:ring-green-500 focus:border-green-500 text-sm"
                   />
                 </div>
-                <div class="flex items-center space-x-3">
+                
+                <!-- Second row: Search input (full width on mobile) -->
+                <div class="flex items-center">
                   <input
                     v-model="searchQuery"
                     type="text"
                     placeholder="Search members..."
-                    class="px-3 py-2 border border-gray-300 rounded-md focus:ring-onwards-blue focus:border-onwards-blue"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-onwards-blue focus:border-onwards-blue"
                   />
-                  <!-- Recording Mode Controls -->
-                  <template v-if="isRecordingMode">
+                </div>
+                
+                <!-- Third row: Action buttons (stacked on mobile, inline on larger screens) -->
+                <template v-if="isRecordingMode">
+                  <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-3 space-y-2 sm:space-y-0">
                     <button
                       @click="showCancelledMeetingModal"
-                      class="px-3 py-2 text-sm bg-orange-100 text-orange-800 rounded hover:bg-orange-200"
+                      class="w-full sm:w-auto px-3 py-2 text-sm bg-orange-100 text-orange-800 rounded hover:bg-orange-200"
                     >
                       Cancel Meeting
                     </button>
                     <button
                       @click="saveAttendance"
                       :disabled="saving"
-                      class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                      class="w-full sm:w-auto px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
                     >
                       {{ saving ? 'Saving...' : 'Save Attendance' }}
                     </button>
-                    <div class="relative">
+                    <div class="relative w-full sm:w-auto">
                       <button
                         @click="showDropdown = !showDropdown"
-                        class="px-3 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded hover:bg-gray-50"
+                        class="w-full sm:w-auto px-3 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded hover:bg-gray-50"
                       >
-                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <svg class="w-5 h-5 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
                         </svg>
+                        More Actions
                       </button>
                       <div
                         v-if="showDropdown"
@@ -191,8 +198,8 @@
                         </button>
                       </div>
                     </div>
-                  </template>
-                </div>
+                  </div>
+                </template>
               </div>
             </div>
 
