@@ -1,5 +1,9 @@
 # Deployment Process and Development Environment Guide
 
+# Hmmm
+* `root`
+* `ep0stArLaDS?`
+
 ## Overview
 This document provides comprehensive guidance for managing the Onwards Admin Platform development environment, particularly in Windows/WSL2 environments where file system mounting and process management can be challenging.
 
@@ -591,5 +595,6 @@ sudo systemctl start onwards-admin-app
 # Check status
 sudo systemctl status onwards-admin-app
 ```
+
 
 This comprehensive guide should help manage both development and production environments effectively, particularly in the challenging Windows/WSL2 context where file system and process management can be complex.

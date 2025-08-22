@@ -103,7 +103,8 @@
       "Bash(dmesg:*)",
       "Bash(sudo cat:*)",
       "Bash(sudo netstat:*)",
-      "Bash(time psql:*)"
+      "Bash(time psql:*)",
+      "Bash(git reset:*)"
     ],
     "deny": []
   }
