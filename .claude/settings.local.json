@@ -94,7 +94,16 @@
       "Bash(sudo mkdir:*)",
       "Bash(sudo openssl req:*)",
       "Bash(sudo cp:*)",
-      "Bash(sudo nginx:*)"
+      "Bash(sudo nginx:*)",
+      "Bash(git pull:*)",
+      "Bash(./scripts/restart-servers.sh:*)",
+      "Bash(journalctl:*)",
+      "Bash(sudo journalctl:*)",
+      "Bash(last:*)",
+      "Bash(dmesg:*)",
+      "Bash(sudo cat:*)",
+      "Bash(sudo netstat:*)",
+      "Bash(time psql:*)"
     ],
     "deny": []
   }
